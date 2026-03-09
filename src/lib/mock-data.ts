@@ -38,7 +38,7 @@ let taskIdCounter = 1;
 export const mockTasks: TaskWithAgent[] = [];
 export const mockSteps: Map<string, TaskStep[]> = new Map();
 
-export function createMockTask(title: string, section: string = "today"): TaskWithAgent {
+export function createMockTask(title: string, section: string = "today", priority: string = "normal"): TaskWithAgent {
   const id = `t${String(taskIdCounter++).padStart(8, "0")}`;
   const task: TaskWithAgent = {
     id,
@@ -60,10 +60,55 @@ export function createMockTask(title: string, section: string = "today"): TaskWi
     completed_at: null,
     section: section as "today" | "week" | "later",
     sort_order: mockTasks.length,
+    priority: priority as "urgent" | "high" | "normal" | "low",
     agent: null,
   };
   mockTasks.unshift(task);
   return task;
+}
+
+let agentIdCounter = 5;
+
+export function createMockAgent(data: {
+  name: string;
+  slug: string;
+  description: string | null;
+  long_description: string | null;
+  icon: string;
+  color: string;
+  gradient: string;
+  system_prompt: string;
+  model: string;
+}): Agent {
+  const id = `a1000000-0000-0000-0000-00000000000${agentIdCounter++}`;
+  const agent: Agent = {
+    id,
+    user_id: DEMO_USER_ID,
+    name: data.name,
+    slug: data.slug,
+    description: data.description,
+    long_description: data.long_description,
+    icon: data.icon,
+    color: data.color,
+    gradient: data.gradient,
+    system_prompt: data.system_prompt,
+    model: data.model,
+    tools: [],
+    is_preset: false,
+    is_public: false,
+    tasks_completed: 0,
+    avg_duration_seconds: 0,
+    created_at: new Date().toISOString(),
+  };
+  mockAgents.push(agent);
+  return agent;
+}
+
+export function deleteAgent(id: string): boolean {
+  const idx = mockAgents.findIndex((a) => a.id === id);
+  if (idx === -1 || mockAgents[idx].is_preset) return false;
+  mockAgents.splice(idx, 1);
+  return true;
 }
 
 export function getAgent(id: string): Agent | undefined {
@@ -111,6 +156,7 @@ const t1 = mockTasks[0];
 t1.agent_id = AGENT_IDS[0];
 t1.agent = getAgentSummary(AGENT_IDS[0]);
 t1.status = "review";
+t1.priority = "high";
 t1.progress = 100;
 t1.cost_usd = 0.14;
 t1.tokens_in = 1245;
@@ -169,6 +215,7 @@ mockSteps.set(t3.id, [
 ]);
 
 createMockTask("Prepare talking points for investor call tomorrow");
+mockTasks[0].priority = "urgent";
 createMockTask("Review and respond to partnership inquiry emails");
 createMockTask("Plan content calendar for March");
 

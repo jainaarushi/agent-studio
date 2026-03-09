@@ -1,6 +1,7 @@
 "use client";
 
 import { Sidebar } from "@/components/layout/sidebar";
+import { CommandPalette } from "@/components/shared/command-palette";
 import { SWRProvider } from "@/components/providers/swr-provider";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useStats } from "@/lib/hooks/use-stats";
@@ -45,6 +46,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </div>
+      <CommandPalette tasks={tasks} agents={agents} />
     </div>
   );
 }
