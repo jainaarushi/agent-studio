@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mockAgents, createMockAgent } from "@/lib/mock-data";
+import { getAuthUser } from "@/lib/auth";
+import { listAgents, createAgent } from "@/lib/data/agents";
 import { z } from "zod";
 
 const createAgentSchema = z.object({
@@ -15,17 +16,24 @@ const createAgentSchema = z.object({
 });
 
 export async function GET() {
-  return NextResponse.json(mockAgents);
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const agents = await listAgents(user.id);
+  return NextResponse.json(agents);
 }
 
 export async function POST(request: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const body = await request.json();
   const parsed = createAgentSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const agent = createMockAgent({
+  const agent = await createAgent(user.id, {
     ...parsed.data,
     description: parsed.data.description ?? null,
     long_description: parsed.data.long_description ?? null,
