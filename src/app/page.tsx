@@ -92,7 +92,7 @@ export default function LandingPage() {
             <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
           </div>
           <a
-            href="/login"
+            href="/today"
             className="px-4 py-2 rounded-lg bg-[#38bdf8] text-[#0a0e14] text-sm font-medium hover:bg-[#38bdf8]/90 transition-colors landing-glow"
           >
             Get Started
@@ -140,7 +140,7 @@ export default function LandingPage() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <a
-              href="/login"
+              href="/today"
               className="flex items-center gap-2 px-8 py-3 rounded-xl bg-[#38bdf8] text-[#0a0e14] font-semibold hover:bg-[#38bdf8]/90 transition-colors landing-glow text-base"
             >
               Get Started
@@ -316,7 +316,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
-                href="/login"
+                href="/today"
                 className="flex items-center gap-2 px-8 py-3 rounded-xl bg-[#38bdf8] text-[#0a0e14] font-semibold hover:bg-[#38bdf8]/90 transition-colors landing-glow"
               >
                 Get Started Free

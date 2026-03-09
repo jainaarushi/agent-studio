@@ -5,20 +5,13 @@ const hasConfig =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
 
-const PUBLIC_PATHS_PREFIX = ["/login", "/auth/callback", "/api/"];
-const PUBLIC_PATHS_EXACT = ["/"];
-
-function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS_EXACT.includes(pathname) || PUBLIC_PATHS_PREFIX.some((p) => pathname.startsWith(p));
-}
-
 export async function middleware(request: NextRequest) {
   // Demo mode: skip auth, allow all routes
   if (!hasConfig) {
     return NextResponse.next();
   }
 
-  // Supabase mode: refresh session and protect routes
+  // Supabase mode: refresh session but don't block unauthenticated users
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -47,13 +40,6 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-
-  // If not authenticated and not on a public path, redirect to login
-  if (!user && !isPublicPath(pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
 
   // If authenticated and on login or landing page, redirect to /today
   if (user && (pathname === "/login" || pathname === "/")) {

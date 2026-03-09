@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTask, getAgent, updateTask as updateMockTask, mockSteps } from "@/lib/mock-data";
-import { getAuthUser } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODELS } from "@/lib/ai/client";
 import { getUserAIConfig } from "@/lib/ai/get-user-key";
 import { calculateCost } from "@/lib/ai/cost";
@@ -23,8 +23,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await requireAuth();
+  if (!user) return NextResponse.json({ error: "Sign up to run agents", login: true }, { status: 401 });
 
   // Get task and agent
   let taskTitle: string;

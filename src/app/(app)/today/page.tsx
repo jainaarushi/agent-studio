@@ -159,12 +159,20 @@ export default function TodayPage() {
     // (multi-agent pipeline: subsequent agents run after the first completes)
     if (agentIds && agentIds.length > 0 && res.ok) {
       const task = await res.json();
-      await fetch(`/api/tasks/${task.id}/assign`, {
+      const assignRes = await fetch(`/api/tasks/${task.id}/assign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agent_id: agentIds[0] }),
       });
-      await fetch(`/api/tasks/${task.id}/run`, { method: "POST" });
+      if (assignRes.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      const runRes = await fetch(`/api/tasks/${task.id}/run`, { method: "POST" });
+      if (runRes.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
     }
 
     mutate();
