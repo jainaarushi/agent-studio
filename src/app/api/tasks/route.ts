@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { listTasks, createTask } from "@/lib/data/tasks";
 import { createTaskSchema } from "@/lib/validators/task";
+import { mockTasks } from "@/lib/mock-data";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Demo user — return mock tasks
+  if (user.isDemo) {
+    const { searchParams } = new URL(request.url);
+    const section = searchParams.get("section") || undefined;
+    const filtered = section ? mockTasks.filter((t) => t.section === section) : mockTasks;
+    return NextResponse.json(filtered);
+  }
 
   const { searchParams } = new URL(request.url);
   const section = searchParams.get("section") || undefined;
@@ -17,7 +25,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.isDemo) return NextResponse.json({ error: "Sign up to create tasks", login: true }, { status: 401 });
 
   const body = await request.json();
   const parsed = createTaskSchema.safeParse(body);

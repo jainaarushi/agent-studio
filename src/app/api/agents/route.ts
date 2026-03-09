@@ -4,7 +4,10 @@ import { listAgents, createAgent } from "@/lib/data/agents";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
 import { PRESET_AGENTS } from "@/seed/agents";
+import { mockAgents } from "@/lib/mock-data";
 import { z } from "zod";
+
+const DEMO_USER_ID = "u1000000-0000-0000-0000-000000000001";
 
 const createAgentSchema = z.object({
   name: z.string().min(1).max(100),
@@ -20,7 +23,11 @@ const createAgentSchema = z.object({
 
 export async function GET() {
   const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Demo user — return mock agents
+  if (user.isDemo) {
+    return NextResponse.json(mockAgents);
+  }
 
   let agents = await listAgents(user.id);
 
@@ -53,7 +60,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.isDemo) return NextResponse.json({ error: "Sign up to create agents", login: true }, { status: 401 });
 
   const body = await request.json();
   const parsed = createAgentSchema.safeParse(body);

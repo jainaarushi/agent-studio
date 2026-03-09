@@ -4,7 +4,10 @@ import { getStats } from "@/lib/data/stats";
 
 export async function GET() {
   const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (user.isDemo) {
+    return NextResponse.json({ working: 0, review: 0, spent: 0 });
+  }
 
   const stats = await getStats(user.id);
   return NextResponse.json(stats);
