@@ -8,6 +8,7 @@ interface TaskSectionProps {
   label: string;
   tasks: TaskWithAgent[];
   onTaskClick: (task: TaskWithAgent) => void;
+  onRunTask?: (taskId: string) => void;
   accentColor?: string;
   dot?: boolean;
   selectable?: boolean;
@@ -18,7 +19,7 @@ interface TaskSectionProps {
 }
 
 export function TaskSection({
-  label, tasks, onTaskClick, accentColor, dot,
+  label, tasks, onTaskClick, onRunTask, accentColor, dot,
   selectable, selectedIds, onSelect,
   draggable, onReorder,
 }: TaskSectionProps) {
@@ -53,6 +54,7 @@ export function TaskSection({
             key={task.id}
             task={task}
             onClick={() => onTaskClick(task)}
+            onRun={onRunTask}
             delay={i * 0.05}
             selectable={selectable}
             selected={selectedIds?.has(task.id)}

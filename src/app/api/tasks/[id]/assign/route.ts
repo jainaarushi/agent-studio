@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth";
 import { assignAgent } from "@/lib/data/tasks";
 import { getAgentById } from "@/lib/data/agents";
 
@@ -7,8 +7,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireAuth();
-  if (!user) return NextResponse.json({ error: "Sign up to use agents", login: true }, { status: 401 });
+  const user = await getAuthUser();
 
   const { id } = await params;
   const { agent_id } = await request.json();

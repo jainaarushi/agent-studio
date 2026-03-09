@@ -122,6 +122,15 @@ export default function TodayPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  async function handleRunTask(taskId: string) {
+    const res = await fetch(`/api/tasks/${taskId}/run`, { method: "POST" });
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+    mutate();
+  }
+
   async function handleCreateTask(title: string, agentIds?: string[]) {
     const optimisticTask: TaskWithAgent = {
       id: `temp-${Date.now()}`,
@@ -155,24 +164,14 @@ export default function TodayPage() {
       body: JSON.stringify({ title, section: "today" }),
     });
 
-    // If agents were selected, assign the first one and run it
-    // (multi-agent pipeline: subsequent agents run after the first completes)
+    // If agents were selected, assign the first one (don't auto-run)
     if (agentIds && agentIds.length > 0 && res.ok) {
       const task = await res.json();
-      const assignRes = await fetch(`/api/tasks/${task.id}/assign`, {
+      await fetch(`/api/tasks/${task.id}/assign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agent_id: agentIds[0] }),
       });
-      if (assignRes.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
-      const runRes = await fetch(`/api/tasks/${task.id}/run`, { method: "POST" });
-      if (runRes.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
     }
 
     mutate();
@@ -437,6 +436,7 @@ export default function TodayPage() {
         label="TO DO"
         tasks={todoTasks}
         onTaskClick={bulkMode ? () => {} : setSelectedTask}
+        onRunTask={handleRunTask}
         accentColor={P.textGhost}
         selectable={bulkMode}
         selectedIds={selectedIds}

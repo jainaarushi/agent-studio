@@ -10,6 +10,7 @@ import type { TaskWithAgent } from "@/lib/types/task";
 interface TaskCardProps {
   task: TaskWithAgent;
   onClick: () => void;
+  onRun?: (taskId: string) => void;
   delay?: number;
   selectable?: boolean;
   selected?: boolean;
@@ -21,7 +22,7 @@ interface TaskCardProps {
 }
 
 export function TaskCard({
-  task, onClick, delay = 0, selectable, selected, onSelect,
+  task, onClick, onRun, delay = 0, selectable, selected, onSelect,
   draggable, onDragStart, onDragOver, onDragEnd,
 }: TaskCardProps) {
   const agent = task.agent;
@@ -204,6 +205,27 @@ export function TaskCard({
             padding: "3px 10px", borderRadius: 7,
             transition: "all 0.2s",
           }}>+ assign</span>
+        )}
+        {task.agent_id && task.status === "todo" && onRun && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onRun(task.id); }}
+            style={{
+              fontSize: 11.5, fontWeight: 700, color: "#fff",
+              background: agent?.gradient || P.indigo,
+              padding: "5px 14px", borderRadius: 8,
+              border: "none", cursor: "pointer",
+              transition: "all 0.2s",
+              boxShadow: `0 2px 8px ${agent?.color || P.indigo}30`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.05)";
+              e.currentTarget.style.boxShadow = `0 4px 14px ${agent?.color || P.indigo}40`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = `0 2px 8px ${agent?.color || P.indigo}30`;
+            }}
+          >▶ Run</button>
         )}
       </div>
     </div>
