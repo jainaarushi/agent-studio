@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { NewTaskInput } from "@/components/tasks/new-task-input";
+import { useState, useCallback, useEffect } from "react";
 import { TaskSection } from "@/components/tasks/task-section";
 import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
+import { CreateTaskModal } from "@/components/tasks/create-task-modal";
 import { BulkActionsBar } from "@/components/tasks/bulk-actions-bar";
 import { Confetti } from "@/components/shared/confetti";
 import { useTasks } from "@/lib/hooks/use-tasks";
+import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P } from "@/lib/palette";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
@@ -20,8 +21,10 @@ function getGreeting(): string {
 
 export default function TodayPage() {
   const { tasks, mutate } = useTasks("today");
+  const { agents } = useAgents();
   const [selectedTask, setSelectedTask] = useState<TaskWithAgent | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -96,7 +99,19 @@ export default function TodayPage() {
     setBulkLoading(false);
   }
 
-  async function handleCreateTask(title: string) {
+  // Cmd+N opens the create modal
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "n") {
+        e.preventDefault();
+        setShowCreateModal(true);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  async function handleCreateTask(title: string, agentId?: string) {
     const optimisticTask: TaskWithAgent = {
       id: `temp-${Date.now()}`,
       user_id: "",
@@ -123,11 +138,22 @@ export default function TodayPage() {
 
     mutate([optimisticTask, ...tasks], false);
 
-    await fetch("/api/tasks", {
+    const res = await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, section: "today" }),
     });
+
+    // If an agent was selected, assign and run it
+    if (agentId && res.ok) {
+      const task = await res.json();
+      await fetch(`/api/tasks/${task.id}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agent_id: agentId }),
+      });
+      await fetch(`/api/tasks/${task.id}/run`, { method: "POST" });
+    }
 
     mutate();
   }
@@ -181,8 +207,35 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* New task input */}
-      <NewTaskInput onSubmit={handleCreateTask} />
+      {/* New task button */}
+      <div
+        onClick={() => setShowCreateModal(true)}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = P.indigo + "40";
+          e.currentTarget.style.color = P.textSec;
+          e.currentTarget.style.backgroundColor = P.indigoSoft;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = P.border;
+          e.currentTarget.style.color = P.textGhost;
+          e.currentTarget.style.backgroundColor = "transparent";
+        }}
+        style={{
+          marginBottom: 20, padding: "14px 18px", borderRadius: 14,
+          border: `2px dashed ${P.border}`,
+          fontSize: 14.5, color: P.textGhost,
+          cursor: "pointer", transition: "all 0.2s",
+          fontWeight: 500, display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}
+      >
+        <span>+ Create a new task...</span>
+        <kbd style={{
+          fontSize: 10, padding: "2px 6px", borderRadius: 5,
+          border: `1px solid ${P.border}`, backgroundColor: P.sidebar,
+          color: P.textTer,
+          fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+        }}>⌘N</kbd>
+      </div>
 
       {/* Review section */}
       <TaskSection
@@ -216,6 +269,20 @@ export default function TodayPage() {
         selectable={bulkMode}
         selectedIds={selectedIds}
         onSelect={handleToggleSelect}
+        draggable={!bulkMode}
+        onReorder={(dragId, dropId) => {
+          // Optimistic reorder
+          const dragIdx = todoTasks.findIndex((t) => t.id === dragId);
+          const dropIdx = todoTasks.findIndex((t) => t.id === dropId);
+          if (dragIdx !== -1 && dropIdx !== -1) {
+            const reordered = [...tasks];
+            const allDragIdx = reordered.findIndex((t) => t.id === dragId);
+            const allDropIdx = reordered.findIndex((t) => t.id === dropId);
+            const [moved] = reordered.splice(allDragIdx, 1);
+            reordered.splice(allDropIdx, 0, moved);
+            mutate(reordered, false);
+          }
+        }}
       />
 
       {/* Bulk actions */}
@@ -226,6 +293,14 @@ export default function TodayPage() {
         onBulkPriority={handleBulkPriority}
         onBulkMove={handleBulkMove}
         loading={bulkLoading}
+      />
+
+      {/* Create task modal */}
+      <CreateTaskModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateTask}
+        agents={agents}
       />
 
       {/* Task detail modal */}
