@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { listAgents, createAgent } from "@/lib/data/agents";
+import { isSupabaseEnabled } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { PRESET_AGENTS } from "@/seed/agents";
 import { z } from "zod";
 
 const createAgentSchema = z.object({
@@ -19,7 +22,32 @@ export async function GET() {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const agents = await listAgents(user.id);
+  let agents = await listAgents(user.id);
+
+  // Auto-seed preset agents if user has none (first visit in live mode)
+  if (agents.length === 0 && isSupabaseEnabled()) {
+    const supabase = await createClient();
+    if (supabase) {
+      const toInsert = PRESET_AGENTS.map((a) => ({
+        name: a.name,
+        slug: a.slug,
+        description: a.description,
+        long_description: a.long_description,
+        icon: a.icon,
+        color: a.color,
+        gradient: a.gradient,
+        system_prompt: a.system_prompt,
+        model: a.model,
+        is_preset: true,
+        is_public: true,
+        user_id: user.id,
+      }));
+
+      await supabase.from("agents").insert(toInsert);
+      agents = await listAgents(user.id);
+    }
+  }
+
   return NextResponse.json(agents);
 }
 
