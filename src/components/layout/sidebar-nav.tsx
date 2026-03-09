@@ -12,6 +12,7 @@ interface SidebarNavProps {
 const NAV_ITEMS = [
   { href: "/today", icon: "☀️", label: "Today" },
   { href: "/agents", icon: "🤖", label: "Agents" },
+  { href: "/analytics", icon: "📈", label: "Analytics" },
   { href: "/completed", icon: "✅", label: "Completed" },
 ];
 

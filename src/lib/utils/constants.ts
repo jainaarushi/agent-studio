@@ -1,4 +1,4 @@
-import { TaskStatus } from "@/lib/types/task";
+import { TaskStatus, TaskPriority } from "@/lib/types/task";
 
 export const STATUS_CONFIG: Record<
   TaskStatus,
@@ -36,3 +36,37 @@ export const SECTION_LABELS = {
   working: "AGENTS WORKING",
   todo: "TO DO",
 } as const;
+
+export const PRIORITY_CONFIG: Record<
+  TaskPriority,
+  { label: string; icon: string; color: string; bgColor: string; sortWeight: number }
+> = {
+  urgent: {
+    label: "Urgent",
+    icon: "🔴",
+    color: "#DC2626",
+    bgColor: "#FEF2F2",
+    sortWeight: 0,
+  },
+  high: {
+    label: "High",
+    icon: "🟠",
+    color: "#EA580C",
+    bgColor: "#FFF7ED",
+    sortWeight: 1,
+  },
+  normal: {
+    label: "Normal",
+    icon: "🔵",
+    color: "#6366F1",
+    bgColor: "#EEF2FF",
+    sortWeight: 2,
+  },
+  low: {
+    label: "Low",
+    icon: "⚪",
+    color: "#9CA3AF",
+    bgColor: "#F9FAFB",
+    sortWeight: 3,
+  },
+};

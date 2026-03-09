@@ -1,5 +1,6 @@
 export type TaskStatus = "todo" | "working" | "review" | "done" | "failed";
 export type TaskSection = "today" | "week" | "later";
+export type TaskPriority = "urgent" | "high" | "normal" | "low";
 
 export interface Task {
   id: string;
@@ -21,6 +22,7 @@ export interface Task {
   completed_at: string | null;
   section: TaskSection;
   sort_order: number;
+  priority: TaskPriority;
 }
 
 export interface TaskWithAgent extends Task {

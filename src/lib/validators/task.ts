@@ -4,6 +4,7 @@ export const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required").max(500),
   description: z.string().max(5000).optional(),
   section: z.enum(["today", "week", "later"]).default("today"),
+  priority: z.enum(["urgent", "high", "normal", "low"]).default("normal"),
 });
 
 export const updateTaskSchema = z.object({
@@ -16,6 +17,7 @@ export const updateTaskSchema = z.object({
   agent_id: z.string().uuid().nullable().optional(),
   section: z.enum(["today", "week", "later"]).optional(),
   sort_order: z.number().optional(),
+  priority: z.enum(["urgent", "high", "normal", "low"]).optional(),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;

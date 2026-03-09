@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const task = createMockTask(parsed.data.title, parsed.data.section);
+  const task = createMockTask(parsed.data.title, parsed.data.section, parsed.data.priority);
   if (parsed.data.description) task.description = parsed.data.description;
 
   return NextResponse.json(task, { status: 201 });

@@ -10,9 +10,12 @@ interface TaskSectionProps {
   onTaskClick: (task: TaskWithAgent) => void;
   accentColor?: string;
   dot?: boolean;
+  selectable?: boolean;
+  selectedIds?: Set<string>;
+  onSelect?: (taskId: string) => void;
 }
 
-export function TaskSection({ label, tasks, onTaskClick, accentColor, dot }: TaskSectionProps) {
+export function TaskSection({ label, tasks, onTaskClick, accentColor, dot, selectable, selectedIds, onSelect }: TaskSectionProps) {
   if (tasks.length === 0) return null;
 
   const color = accentColor || P.textGhost;
@@ -36,6 +39,9 @@ export function TaskSection({ label, tasks, onTaskClick, accentColor, dot }: Tas
             task={task}
             onClick={() => onTaskClick(task)}
             delay={i * 0.04}
+            selectable={selectable}
+            selected={selectedIds?.has(task.id)}
+            onSelect={onSelect}
           />
         ))}
       </div>
