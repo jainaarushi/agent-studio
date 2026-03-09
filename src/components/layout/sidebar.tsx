@@ -40,8 +40,8 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
         }}>
           C
         </div>
-        <span style={{ fontSize: 18, fontWeight: 800, color: P.text, letterSpacing: "-0.03em" }}>
-          Cadre
+        <span style={{ fontSize: 15, fontWeight: 800, color: P.text, letterSpacing: "-0.03em" }}>
+          AgentStudio
         </span>
         <span style={{
           fontSize: 10, fontWeight: 700, color: P.indigo,

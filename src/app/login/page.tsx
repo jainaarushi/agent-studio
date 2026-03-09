@@ -78,7 +78,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-ink mb-2">
-            Cadre
+            AgentStudio
           </h1>
           <p className="text-ink-secondary text-sm">
             Your daily workspace with AI teammates

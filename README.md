@@ -1,11 +1,13 @@
-# Cadre
+# AgentStudio
 
 A daily workspace where humans and AI agents collaborate on tasks. Built with Next.js, Supabase, and the Anthropic SDK.
+
+**Live at [agentstudio.world](https://agentstudio.world)**
 
 ## Features
 
 - **12 AI Agents** — Scout, Quill, Metric, Atlas, Voyager, Pulse, Sleuth, Caster, Architect, Catalyst, Vitalis, Strategist
-- **Smart Agent Suggestions** — as you type a task, Cadre recommends the best agents based on keywords
+- **Smart Agent Suggestions** — as you type a task, AgentStudio recommends the best agents based on keywords
 - **Multi-Agent Pipelines** — select multiple agents and drag-and-drop to reorder their execution sequence
 - **Task Priority System** — Urgent, High, Normal, Low with color-coded badges
 - **Command Palette (⌘K)** — search tasks, agents, and navigate instantly
@@ -31,8 +33,8 @@ A daily workspace where humans and AI agents collaborate on tasks. Built with Ne
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/jainaarushi/missioncontroller.git
-cd missioncontroller
+git clone https://github.com/jainaarushi/agent-studio.git
+cd agent-studio
 ```
 
 ### 2. Install dependencies

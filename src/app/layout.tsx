@@ -16,9 +16,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cadre — Your daily workspace with AI teammates",
+  title: "AgentStudio — Your daily workspace with AI teammates",
   description:
-    "A daily workspace where humans and AI agents collaborate on tasks together.",
+    "A daily workspace where humans and AI agents collaborate on tasks together. agentstudio.world",
 };
 
 export default function RootLayout({

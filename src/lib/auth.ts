@@ -6,7 +6,7 @@ export async function getAuthUser(): Promise<{ id: string; email: string } | nul
   const supabase = await createServerClient();
   if (!supabase) {
     // Demo mode — return fake user
-    return { id: DEMO_USER_ID, email: "demo@cadre.app" };
+    return { id: DEMO_USER_ID, email: "demo@agentstudio.world" };
   }
 
   const { data: { user }, error } = await supabase.auth.getUser();

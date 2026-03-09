@@ -6,7 +6,7 @@ import type { User } from "@supabase/supabase-js";
 
 const DEMO_USER = {
   id: "u1000000-0000-0000-0000-000000000001",
-  email: "demo@cadre.app",
+  email: "demo@agentstudio.world",
 };
 
 interface AppUser {
