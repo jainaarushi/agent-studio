@@ -45,7 +45,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         workingTasks={workingTasks}
       />
       <div style={{ flex: 1, display: "flex", justifyContent: "center", overflow: "auto" }}>
-        <div style={{ width: "100%", maxWidth: 900, padding: "40px 40px" }}>
+        <div style={{ width: "100%", maxWidth: 1100, padding: "40px 40px" }}>
           {children}
         </div>
       </div>

@@ -1,7 +1,7 @@
 export const PRESET_AGENTS = [
   // ── Original 4 ──────────────────────────────────────────────
   {
-    name: "Scout",
+    name: "Researcher",
     slug: "scout",
     description: "Research & Discovery",
     long_description:
@@ -9,7 +9,7 @@ export const PRESET_AGENTS = [
     icon: "🔭",
     color: "#6366F1",
     gradient: "linear-gradient(135deg, #6366F1, #818CF8)",
-    system_prompt: `You are Scout, a research specialist. Your job is to find, analyze, and present information clearly.
+    system_prompt: `You are Researcher, a research specialist. Your job is to find, analyze, and present information clearly.
 
 Rules:
 - Always structure findings with clear headings and bullet points
@@ -29,7 +29,7 @@ When researching, follow this process:
     model: "claude-sonnet-4-20250514",
   },
   {
-    name: "Quill",
+    name: "Writer",
     slug: "quill",
     description: "Writing & Content",
     long_description:
@@ -37,7 +37,7 @@ When researching, follow this process:
     icon: "✒️",
     color: "#EC4899",
     gradient: "linear-gradient(135deg, #EC4899, #F472B6)",
-    system_prompt: `You are Quill, a writing specialist. Your job is to produce clear, polished, publication-ready content.
+    system_prompt: `You are Writer, a writing specialist. Your job is to produce clear, polished, publication-ready content.
 
 Rules:
 - Match the tone and style appropriate to the content type
@@ -59,7 +59,7 @@ When writing, follow this process:
     model: "claude-sonnet-4-20250514",
   },
   {
-    name: "Metric",
+    name: "Analyst",
     slug: "metric",
     description: "Data & Analysis",
     long_description:
@@ -67,7 +67,7 @@ When writing, follow this process:
     icon: "📊",
     color: "#10B981",
     gradient: "linear-gradient(135deg, #10B981, #34D399)",
-    system_prompt: `You are Metric, a data analysis specialist. Your job is to turn data into clear, actionable insights.
+    system_prompt: `You are Analyst, a data analysis specialist. Your job is to turn data into clear, actionable insights.
 
 Rules:
 - Always start with the key finding or headline number
@@ -89,7 +89,7 @@ When analyzing, follow this process:
     model: "claude-sonnet-4-20250514",
   },
   {
-    name: "Atlas",
+    name: "Assistant",
     slug: "atlas",
     description: "General Assistant",
     long_description:
@@ -97,7 +97,7 @@ When analyzing, follow this process:
     icon: "🧭",
     color: "#F59E0B",
     gradient: "linear-gradient(135deg, #F59E0B, #FBBF24)",
-    system_prompt: `You are Atlas, a versatile assistant. Your job is to handle any task efficiently and thoughtfully.
+    system_prompt: `You are Assistant, a versatile assistant. Your job is to handle any task efficiently and thoughtfully.
 
 Rules:
 - Adapt your approach to the specific task type
@@ -121,7 +121,7 @@ When working, follow this process:
   // ── New Starter Agents (inspired by awesome-llm-apps) ──────
 
   {
-    name: "Voyager",
+    name: "Travel Planner",
     slug: "voyager",
     description: "Travel Planning",
     long_description:
@@ -129,7 +129,7 @@ When working, follow this process:
     icon: "✈️",
     color: "#0EA5E9",
     gradient: "linear-gradient(135deg, #0EA5E9, #38BDF8)",
-    system_prompt: `You are Voyager, an expert travel planning agent. Your job is to create detailed, personalized trip itineraries.
+    system_prompt: `You are Travel Planner, an expert travel planning agent. Your job is to create detailed, personalized trip itineraries.
 
 Rules:
 - Always ask for destination, dates, budget range, and travel style (adventure, relaxation, culture, foodie)
@@ -152,7 +152,7 @@ When planning, follow this process:
     model: "claude-sonnet-4-20250514",
   },
   {
-    name: "Pulse",
+    name: "Finance",
     slug: "pulse",
     description: "Finance & Markets",
     long_description:
@@ -160,7 +160,7 @@ When planning, follow this process:
     icon: "💹",
     color: "#059669",
     gradient: "linear-gradient(135deg, #059669, #34D399)",
-    system_prompt: `You are Pulse, a financial analysis specialist. Your job is to provide clear, data-driven market and financial insights.
+    system_prompt: `You are Finance, a financial analysis specialist. Your job is to provide clear, data-driven market and financial insights.
 
 Rules:
 - Always include current data context — prices, dates, market conditions
@@ -183,7 +183,7 @@ When analyzing, follow this process:
     model: "claude-sonnet-4-20250514",
   },
   {
-    name: "Sleuth",
+    name: "Web Intel",
     slug: "sleuth",
     description: "Web Intelligence",
     long_description:
@@ -191,7 +191,7 @@ When analyzing, follow this process:
     icon: "🕵️",
     color: "#7C3AED",
     gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)",
-    system_prompt: `You are Sleuth, a web intelligence and data extraction specialist. Your job is to gather, structure, and analyze information from websites and online sources.
+    system_prompt: `You are Web Intel, a web intelligence and data extraction specialist. Your job is to gather, structure, and analyze information from websites and online sources.
 
 Rules:
 - Always structure extracted data in clean tables or JSON format
@@ -214,7 +214,7 @@ When extracting, follow this process:
     model: "claude-sonnet-4-20250514",
   },
   {
-    name: "Caster",
+    name: "Converter",
     slug: "caster",
     description: "Content Transformer",
     long_description:
@@ -222,7 +222,7 @@ When extracting, follow this process:
     icon: "🎙️",
     color: "#D946EF",
     gradient: "linear-gradient(135deg, #D946EF, #E879F9)",
-    system_prompt: `You are Caster, a content transformation specialist. Your job is to convert content from one format to another while preserving the core message and enhancing it for the new medium.
+    system_prompt: `You are Converter, a content transformation specialist. Your job is to convert content from one format to another while preserving the core message and enhancing it for the new medium.
 
 Rules:
 - Blog → Podcast: Write conversational scripts with natural speech patterns, add hooks and transitions, include intro/outro segments
@@ -247,7 +247,7 @@ When transforming, follow this process:
   // ── New Advanced Agents (inspired by awesome-llm-apps) ─────
 
   {
-    name: "Architect",
+    name: "Tech Lead",
     slug: "architect",
     description: "System Design",
     long_description:
@@ -255,7 +255,7 @@ When transforming, follow this process:
     icon: "🏗️",
     color: "#DC2626",
     gradient: "linear-gradient(135deg, #DC2626, #F87171)",
-    system_prompt: `You are Architect, an expert software system design agent. Your job is to design robust, scalable architectures and provide technical leadership.
+    system_prompt: `You are Tech Lead, an expert software system design agent. Your job is to design robust, scalable architectures and provide technical leadership.
 
 Rules:
 - Always start by understanding the requirements: scale, budget, team size, timeline
@@ -279,7 +279,7 @@ When designing, follow this process:
     model: "claude-sonnet-4-20250514",
   },
   {
-    name: "Catalyst",
+    name: "Sales Rep",
     slug: "catalyst",
     description: "Sales Intelligence",
     long_description:
@@ -287,7 +287,7 @@ When designing, follow this process:
     icon: "🎯",
     color: "#F97316",
     gradient: "linear-gradient(135deg, #F97316, #FB923C)",
-    system_prompt: `You are Catalyst, a B2B sales intelligence and outreach specialist. Your job is to identify ideal prospects, research them deeply, and craft hyper-personalized outreach that gets responses.
+    system_prompt: `You are Sales Rep, a B2B sales intelligence and outreach specialist. Your job is to identify ideal prospects, research them deeply, and craft hyper-personalized outreach that gets responses.
 
 Rules:
 - Build Ideal Customer Profiles (ICP) based on industry, size, tech stack, and pain points
@@ -311,7 +311,7 @@ When prospecting, follow this process:
     model: "claude-sonnet-4-20250514",
   },
   {
-    name: "Vitalis",
+    name: "Fitness Coach",
     slug: "vitalis",
     description: "Health & Fitness",
     long_description:
@@ -319,7 +319,7 @@ When prospecting, follow this process:
     icon: "💪",
     color: "#14B8A6",
     gradient: "linear-gradient(135deg, #14B8A6, #5EEAD4)",
-    system_prompt: `You are Vitalis, a health and fitness planning specialist. Your job is to create personalized, science-backed meal plans, workout routines, and wellness strategies.
+    system_prompt: `You are Fitness Coach, a health and fitness planning specialist. Your job is to create personalized, science-backed meal plans, workout routines, and wellness strategies.
 
 Rules:
 - Always ask for: age, weight, height, goals (lose fat/build muscle/maintain), dietary restrictions, fitness level, available equipment
@@ -343,7 +343,7 @@ When planning, follow this process:
     model: "claude-sonnet-4-20250514",
   },
   {
-    name: "Strategist",
+    name: "Consultant",
     slug: "strategist",
     description: "Business Consulting",
     long_description:
@@ -351,7 +351,7 @@ When planning, follow this process:
     icon: "♟️",
     color: "#1D4ED8",
     gradient: "linear-gradient(135deg, #1D4ED8, #3B82F6)",
-    system_prompt: `You are Strategist, a business consulting agent. Your job is to deliver structured, McKinsey-quality analysis and strategic recommendations.
+    system_prompt: `You are Consultant, a business consulting agent. Your job is to deliver structured, McKinsey-quality analysis and strategic recommendations.
 
 Rules:
 - Structure every analysis with the Situation → Complication → Resolution framework
