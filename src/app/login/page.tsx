@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgot, setIsForgot] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -25,6 +26,19 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     setMessage(null);
+
+    if (isForgot) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/today`,
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        setMessage("Check your email for the reset link.");
+      }
+      setLoading(false);
+      return;
+    }
 
     if (isSignUp) {
       const { data, error } = await supabase.auth.signUp({
@@ -104,17 +118,19 @@ export default function LoginPage() {
                 className="bg-white/60"
               />
             </div>
-            <div>
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="bg-white/60"
-              />
-            </div>
+            {!isForgot && (
+              <div>
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="bg-white/60"
+                />
+              </div>
+            )}
 
             {error && (
               <p className="text-sm text-red-600">{error}</p>
@@ -133,26 +149,50 @@ export default function LoginPage() {
             >
               {loading
                 ? "Loading..."
-                : isSignUp
-                  ? "Create Account"
-                  : "Sign In"}
+                : isForgot
+                  ? "Send Reset Link"
+                  : isSignUp
+                    ? "Create Account"
+                    : "Sign In"}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-ink-secondary mt-4">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError(null);
-                setMessage(null);
-              }}
-              className="font-medium"
-              style={{ color: "#b8860b" }}
-            >
-              {isSignUp ? "Sign in" : "Sign up"}
-            </button>
+          {!isSignUp && !isForgot && (
+            <p className="text-center text-xs text-ink-tertiary mt-3">
+              <button
+                type="button"
+                onClick={() => { setIsForgot(true); setError(null); setMessage(null); }}
+                className="hover:underline"
+                style={{ color: "#999" }}
+              >
+                Forgot password?
+              </button>
+            </p>
+          )}
+
+          <p className="text-center text-sm text-ink-secondary mt-3">
+            {isForgot ? (
+              <button
+                type="button"
+                onClick={() => { setIsForgot(false); setError(null); setMessage(null); }}
+                className="font-medium"
+                style={{ color: "#b8860b" }}
+              >
+                Back to sign in
+              </button>
+            ) : (
+              <>
+                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+                <button
+                  type="button"
+                  onClick={() => { setIsSignUp(!isSignUp); setError(null); setMessage(null); }}
+                  className="font-medium"
+                  style={{ color: "#b8860b" }}
+                >
+                  {isSignUp ? "Sign in" : "Sign up"}
+                </button>
+              </>
+            )}
           </p>
         </div>
       </div>
