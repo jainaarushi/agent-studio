@@ -5,7 +5,7 @@ import { createClient, isSupabaseEnabled } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { P } from "@/lib/palette";
 
-type Provider = "gemini" | "anthropic";
+type Provider = "openai" | "gemini" | "anthropic";
 
 interface KeyInfo {
   hasKey: boolean;
@@ -16,8 +16,9 @@ export default function SettingsPage() {
   const router = useRouter();
   const supabaseEnabled = isSupabaseEnabled();
 
-  const [activeProvider, setActiveProvider] = useState<Provider>("gemini");
+  const [activeProvider, setActiveProvider] = useState<Provider>("openai");
   const [apiKey, setApiKey] = useState("");
+  const [openaiInfo, setOpenaiInfo] = useState<KeyInfo | null>(null);
   const [anthropicInfo, setAnthropicInfo] = useState<KeyInfo | null>(null);
   const [geminiInfo, setGeminiInfo] = useState<KeyInfo | null>(null);
   const [saving, setSaving] = useState(false);
@@ -29,6 +30,7 @@ export default function SettingsPage() {
     fetch("/api/user/api-key")
       .then((r) => r.json())
       .then((data) => {
+        setOpenaiInfo(data.openai);
         setAnthropicInfo(data.anthropic);
         setGeminiInfo(data.gemini);
         if (data.provider) setActiveProvider(data.provider);
@@ -36,7 +38,7 @@ export default function SettingsPage() {
       .catch(() => {});
   }, []);
 
-  const currentInfo = activeProvider === "gemini" ? geminiInfo : anthropicInfo;
+  const currentInfo = activeProvider === "openai" ? openaiInfo : activeProvider === "gemini" ? geminiInfo : anthropicInfo;
 
   async function handleSaveKey() {
     if (!apiKey.trim()) return;
@@ -53,7 +55,8 @@ export default function SettingsPage() {
 
       if (res.ok) {
         const info = { hasKey: true, maskedKey: data.maskedKey };
-        if (activeProvider === "gemini") setGeminiInfo(info);
+        if (activeProvider === "openai") setOpenaiInfo(info);
+        else if (activeProvider === "gemini") setGeminiInfo(info);
         else setAnthropicInfo(info);
         setApiKey("");
         setShowKey(false);
@@ -74,7 +77,8 @@ export default function SettingsPage() {
     try {
       const res = await fetch(`/api/user/api-key?provider=${provider}`, { method: "DELETE" });
       if (res.ok) {
-        if (provider === "gemini") setGeminiInfo(null);
+        if (provider === "openai") setOpenaiInfo(null);
+        else if (provider === "gemini") setGeminiInfo(null);
         else setAnthropicInfo(null);
         setMessage({ type: "success", text: "Key removed" });
       }
@@ -95,17 +99,30 @@ export default function SettingsPage() {
 
   const providers = [
     {
+      id: "openai" as Provider,
+      name: "OpenAI",
+      icon: "🟢",
+      color: "#10A37F",
+      gradient: "linear-gradient(135deg, #10A37F, #1A7F64)",
+      placeholder: "sk-...",
+      description: "GPT-4o Mini — fast, affordable, widely used",
+      link: "https://platform.openai.com/api-keys",
+      linkText: "Get key at platform.openai.com",
+      badge: "Popular",
+      badgeColor: "#10A37F",
+    },
+    {
       id: "gemini" as Provider,
       name: "Google Gemini",
       icon: "✨",
       color: "#4285F4",
       gradient: "linear-gradient(135deg, #4285F4, #34A853)",
       placeholder: "AIza...",
-      description: "Free tier available — 15 req/min, no expiration",
+      description: "Free tier available (requires billing setup)",
       link: "https://aistudio.google.com/apikey",
       linkText: "Get free key at aistudio.google.com",
       badge: "Free",
-      badgeColor: "#10B981",
+      badgeColor: "#4285F4",
     },
     {
       id: "anthropic" as Provider,
@@ -117,7 +134,7 @@ export default function SettingsPage() {
       description: "Most capable — requires $5 minimum credits",
       link: "https://console.anthropic.com/settings/keys",
       linkText: "Get key at console.anthropic.com",
-      badge: "Paid",
+      badge: "Premium",
       badgeColor: "#D97706",
     },
   ];
@@ -150,7 +167,7 @@ export default function SettingsPage() {
         <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
           {providers.map((p) => {
             const isActive = activeProvider === p.id;
-            const info = p.id === "gemini" ? geminiInfo : anthropicInfo;
+            const info = p.id === "openai" ? openaiInfo : p.id === "gemini" ? geminiInfo : anthropicInfo;
             return (
               <div
                 key={p.id}
@@ -324,9 +341,9 @@ export default function SettingsPage() {
             <span style={{ fontSize: 13, color: P.text }}>Database: <strong>{supabaseEnabled ? "Connected" : "Demo"}</strong></span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: (geminiInfo?.hasKey || anthropicInfo?.hasKey) ? P.emerald : P.textGhost }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: (openaiInfo?.hasKey || geminiInfo?.hasKey || anthropicInfo?.hasKey) ? P.emerald : P.textGhost }} />
             <span style={{ fontSize: 13, color: P.text }}>
-              AI: <strong>{geminiInfo?.hasKey ? "Gemini active" : anthropicInfo?.hasKey ? "Claude active" : "No key — demo mode"}</strong>
+              AI: <strong>{openaiInfo?.hasKey ? "OpenAI active" : geminiInfo?.hasKey ? "Gemini active" : anthropicInfo?.hasKey ? "Claude active" : "No key — demo mode"}</strong>
             </span>
           </div>
         </div>

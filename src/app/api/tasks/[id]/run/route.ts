@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTask, getAgent, updateTask as updateMockTask, mockSteps } from "@/lib/mock-data";
 import { getAuthUser } from "@/lib/auth";
-import { createUserAnthropic, createUserGemini, PROVIDER_MODELS } from "@/lib/ai/client";
+import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODELS } from "@/lib/ai/client";
 import { getUserAIConfig } from "@/lib/ai/get-user-key";
 import { calculateCost } from "@/lib/ai/cost";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
@@ -103,7 +103,7 @@ async function runAgent(
   agentName: string,
   systemPrompt: string,
   steps: TaskStep[],
-  provider: "anthropic" | "gemini",
+  provider: "openai" | "gemini" | "anthropic",
   apiKey: string,
 ) {
   const startTime = Date.now();
@@ -113,6 +113,8 @@ async function runAgent(
   const modelId = PROVIDER_MODELS[provider].default;
   const aiModel = provider === "anthropic"
     ? createUserAnthropic(apiKey)(modelId)
+    : provider === "openai"
+    ? createUserOpenAI(apiKey)(modelId)
     : createUserGemini(apiKey)(modelId);
 
   try {

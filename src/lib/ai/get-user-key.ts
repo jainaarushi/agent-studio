@@ -16,38 +16,35 @@ export async function getUserAIConfig(userId: string): Promise<UserAIConfig | nu
 
   const { data } = await supabase
     .from("users")
-    .select("anthropic_api_key, gemini_api_key, ai_provider")
+    .select("anthropic_api_key, gemini_api_key, openai_api_key, ai_provider")
     .eq("id", userId)
     .single();
 
   if (!data) return null;
 
-  const provider = (data.ai_provider || "anthropic") as AIProvider;
+  const provider = (data.ai_provider || "openai") as AIProvider;
 
-  // Try the selected provider first, then fall back to the other
-  if (provider === "gemini" && data.gemini_api_key) {
+  // Try selected provider first
+  const keyMap: Record<AIProvider, string | null> = {
+    openai: data.openai_api_key,
+    gemini: data.gemini_api_key,
+    anthropic: data.anthropic_api_key,
+  };
+
+  // Selected provider
+  if (keyMap[provider]) {
     try {
-      return { provider: "gemini", apiKey: decryptApiKey(data.gemini_api_key) };
+      return { provider, apiKey: decryptApiKey(keyMap[provider]!) };
     } catch { /* fall through */ }
   }
 
-  if (provider === "anthropic" && data.anthropic_api_key) {
-    try {
-      return { provider: "anthropic", apiKey: decryptApiKey(data.anthropic_api_key) };
-    } catch { /* fall through */ }
-  }
-
-  // Fall back: try whichever key exists
-  if (data.gemini_api_key) {
-    try {
-      return { provider: "gemini", apiKey: decryptApiKey(data.gemini_api_key) };
-    } catch { /* ignore */ }
-  }
-
-  if (data.anthropic_api_key) {
-    try {
-      return { provider: "anthropic", apiKey: decryptApiKey(data.anthropic_api_key) };
-    } catch { /* ignore */ }
+  // Fallback: try any key that exists
+  for (const [p, key] of Object.entries(keyMap)) {
+    if (key) {
+      try {
+        return { provider: p as AIProvider, apiKey: decryptApiKey(key) };
+      } catch { /* continue */ }
+    }
   }
 
   return null;
