@@ -114,6 +114,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskM
   const [value, setValue] = useState("");
   const [activeCategory, setActiveCategory] = useState("for-you");
   const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
+  const [dragPipelineIdx, setDragPipelineIdx] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Smart agent suggestions based on what the user types
@@ -147,6 +148,27 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskM
         ? prev.filter((id) => id !== agentId)
         : [...prev, agentId]
     );
+  }
+
+  function handlePipelineDragStart(idx: number) {
+    setDragPipelineIdx(idx);
+  }
+
+  function handlePipelineDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault();
+    if (dragPipelineIdx === null || dragPipelineIdx === idx) return;
+    // Reorder
+    setSelectedAgentIds((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragPipelineIdx, 1);
+      next.splice(idx, 0, moved);
+      return next;
+    });
+    setDragPipelineIdx(idx);
+  }
+
+  function handlePipelineDragEnd() {
+    setDragPipelineIdx(null);
   }
 
   function handleSubmit(title?: string) {
@@ -378,54 +400,107 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskM
             </div>
           )}
 
-          {/* Agent pipeline visualization — shows selected agent flow */}
+          {/* Agent pipeline — drag-and-drop to reorder */}
           {selectedAgents.length > 0 && (
             <div style={{
-              marginBottom: 20, padding: "14px 16px", borderRadius: 14,
+              marginBottom: 20, padding: "16px 18px", borderRadius: 14,
               backgroundColor: P.sidebar, border: `1.5px solid ${P.border}`,
               animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)",
             }}>
               <div style={{
-                fontSize: 11, fontWeight: 700, color: P.textTer,
-                letterSpacing: "0.05em", marginBottom: 10,
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                marginBottom: 12,
               }}>
-                AGENT PIPELINE
+                <div style={{
+                  fontSize: 11, fontWeight: 700, color: P.textTer,
+                  letterSpacing: "0.05em",
+                }}>
+                  AGENT PIPELINE
+                </div>
+                <div style={{ fontSize: 10.5, color: P.textGhost }}>
+                  Drag to reorder
+                </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 0, flexWrap: "wrap" }}>
                 {selectedAgents.map((agent, i) => (
                   <div key={agent.id} style={{ display: "flex", alignItems: "center" }}>
                     <div
-                      onClick={() => toggleAgent(agent.id)}
+                      draggable
+                      onDragStart={() => handlePipelineDragStart(i)}
+                      onDragOver={(e) => handlePipelineDragOver(e, i)}
+                      onDragEnd={handlePipelineDragEnd}
                       style={{
                         display: "flex", alignItems: "center", gap: 8,
-                        padding: "6px 12px 6px 6px", borderRadius: 20,
-                        backgroundColor: agent.color + "12",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
+                        padding: "7px 10px 7px 7px", borderRadius: 22,
+                        backgroundColor: dragPipelineIdx === i ? agent.color + "20" : agent.color + "12",
+                        cursor: "grab",
+                        transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
                         animation: `popIn 0.3s cubic-bezier(0.22,1,0.36,1) ${i * 0.08}s both`,
+                        border: `2px solid ${dragPipelineIdx === i ? agent.color + "40" : "transparent"}`,
+                        transform: dragPipelineIdx === i ? "scale(1.05)" : "scale(1)",
+                        boxShadow: dragPipelineIdx === i ? `0 4px 12px ${agent.color}20` : "none",
+                        userSelect: "none",
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = agent.color + "20"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = agent.color + "12"; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = agent.color + "1a"; }}
+                      onMouseLeave={(e) => { if (dragPipelineIdx !== i) e.currentTarget.style.backgroundColor = agent.color + "12"; }}
                     >
-                      <AgentAvatar icon={agent.icon} color={agent.color} gradient={agent.gradient} size={26} />
+                      {/* Drag grip dots */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 1.5, marginRight: 2, opacity: 0.4 }}>
+                        {[0, 1].map((r) => (
+                          <div key={r} style={{ display: "flex", gap: 1.5 }}>
+                            <div style={{ width: 2.5, height: 2.5, borderRadius: "50%", backgroundColor: agent.color }} />
+                            <div style={{ width: 2.5, height: 2.5, borderRadius: "50%", backgroundColor: agent.color }} />
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{
+                        width: 22, height: 22, borderRadius: 7,
+                        background: agent.gradient,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 12, flexShrink: 0,
+                        boxShadow: `0 2px 6px ${agent.color}25`,
+                      }}>
+                        {agent.icon}
+                      </div>
                       <span style={{ fontSize: 12.5, fontWeight: 700, color: agent.color }}>{agent.name}</span>
+                      {/* Step number badge */}
                       <span style={{
-                        fontSize: 10, color: agent.color, opacity: 0.6, cursor: "pointer",
-                        marginLeft: 2,
-                      }}>✕</span>
+                        fontSize: 9, fontWeight: 800, color: "#fff",
+                        backgroundColor: agent.color,
+                        width: 18, height: 18, borderRadius: 6,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
+                      }}>
+                        {i + 1}
+                      </span>
+                      {/* Remove button */}
+                      <span
+                        onClick={(e) => { e.stopPropagation(); toggleAgent(agent.id); }}
+                        style={{
+                          fontSize: 10, color: agent.color, opacity: 0.5, cursor: "pointer",
+                          marginLeft: -2, padding: "0 2px",
+                          transition: "opacity 0.15s",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.5"; }}
+                      >✕</span>
                     </div>
                     {i < selectedAgents.length - 1 && (
                       <div style={{
-                        margin: "0 8px", color: P.textGhost, fontSize: 14, fontWeight: 600,
+                        margin: "0 6px", color: P.textGhost, fontSize: 16, fontWeight: 500,
+                        transition: "all 0.2s",
                       }}>→</div>
                     )}
                   </div>
                 ))}
               </div>
-              <div style={{ fontSize: 11, color: P.textTer, marginTop: 8 }}>
+              <div style={{
+                fontSize: 11.5, color: P.textSec, marginTop: 10,
+                lineHeight: 1.5,
+              }}>
                 {selectedAgents.length === 1
-                  ? `${selectedAgents[0].name} will handle this task`
-                  : `${selectedAgents.map((a) => a.name).join(" → ")} will work sequentially`
+                  ? `${selectedAgents[0].name} will handle this task solo`
+                  : `${selectedAgents.map((a) => a.name).join(" → ")} — each agent builds on the previous output`
                 }
               </div>
             </div>
