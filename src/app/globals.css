@@ -186,6 +186,34 @@
   }
 }
 
+/* Landing page — scoped dark theme */
+.landing-dark {
+  background-color: #0a0e14;
+  color: #e0e4ea;
+  font-family: 'Space Grotesk', var(--font-sans), sans-serif;
+}
+.landing-glass {
+  background: rgba(14, 19, 27, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.landing-glow {
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.15), 0 0 60px rgba(56, 189, 248, 0.05);
+}
+.landing-text-gradient {
+  background: linear-gradient(135deg, #38bdf8, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.landing-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
