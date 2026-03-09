@@ -27,6 +27,17 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const agent = task.agent;
   const isReview = task.status === "review";
   const isWorking = task.status === "working";
+  const isTodo = task.status === "todo";
+  const isFailed = task.status === "failed";
+
+  async function handleRun() {
+    setLoading(true);
+    await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
+    mutateTask();
+    onUpdate();
+    setLoading(false);
+    onClose();
+  }
 
   async function handleAssign(agentId: string) {
     setLoading(true);
@@ -181,6 +192,36 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Run button for assigned but not started tasks */}
+          {task.agent_id && (isTodo || isFailed) && (
+            <div style={{ marginBottom: 24 }}>
+              <button
+                onClick={handleRun}
+                disabled={loading}
+                style={{
+                  width: "100%", padding: "14px 0", borderRadius: 12, border: "none",
+                  cursor: loading ? "not-allowed" : "pointer",
+                  background: agent ? agent.gradient : P.coralGrad,
+                  color: "#fff", fontSize: 15, fontWeight: 700,
+                  fontFamily: "inherit",
+                  boxShadow: agent ? `0 4px 16px ${agent.color}30` : "0 4px 16px rgba(249,112,102,0.3)",
+                  transition: "all 0.2s cubic-bezier(0.16,1,0.3,1)",
+                  opacity: loading ? 0.6 : 1,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+              >
+                {loading ? "Starting..." : `Run ${agent?.name || "Agent"} →`}
+              </button>
+              {isFailed && (
+                <p style={{ fontSize: 12, color: P.textTer, marginTop: 8, textAlign: "center" }}>
+                  Previous run failed. Click to retry.
+                </p>
+              )}
             </div>
           )}
 
