@@ -8,6 +8,14 @@ const AGENT_IDS = [
   "a1000000-0000-0000-0000-000000000002",
   "a1000000-0000-0000-0000-000000000003",
   "a1000000-0000-0000-0000-000000000004",
+  "a1000000-0000-0000-0000-000000000005",
+  "a1000000-0000-0000-0000-000000000006",
+  "a1000000-0000-0000-0000-000000000007",
+  "a1000000-0000-0000-0000-000000000008",
+  "a1000000-0000-0000-0000-000000000009",
+  "a1000000-0000-0000-0000-000000000010",
+  "a1000000-0000-0000-0000-000000000011",
+  "a1000000-0000-0000-0000-000000000012",
 ];
 
 const DEMO_USER_ID = "u1000000-0000-0000-0000-000000000001";
@@ -67,7 +75,7 @@ export function createMockTask(title: string, section: string = "today", priorit
   return task;
 }
 
-let agentIdCounter = 5;
+let agentIdCounter = 13;
 
 export function createMockAgent(data: {
   name: string;
@@ -80,7 +88,7 @@ export function createMockAgent(data: {
   system_prompt: string;
   model: string;
 }): Agent {
-  const id = `a1000000-0000-0000-0000-00000000000${agentIdCounter++}`;
+  const id = `a1000000-0000-0000-0000-${String(agentIdCounter++).padStart(12, "0")}`;
   const agent: Agent = {
     id,
     user_id: DEMO_USER_ID,
