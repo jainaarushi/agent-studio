@@ -31,27 +31,32 @@ export async function GET() {
 
   let agents = await listAgents(user.id);
 
-  // Auto-seed preset agents if user has none (first visit in live mode)
-  if (agents.length === 0 && isSupabaseEnabled()) {
-    const supabase = await createClient();
-    if (supabase) {
-      const toInsert = PRESET_AGENTS.map((a) => ({
-        name: a.name,
-        slug: a.slug,
-        description: a.description,
-        long_description: a.long_description,
-        icon: a.icon,
-        color: a.color,
-        gradient: a.gradient,
-        system_prompt: a.system_prompt,
-        model: a.model,
-        is_preset: true,
-        is_public: true,
-        user_id: user.id,
-      }));
+  // Auto-seed: add any missing preset agents (handles new agents added to the codebase)
+  if (isSupabaseEnabled()) {
+    const existingSlugs = new Set(agents.filter((a: { is_preset?: boolean }) => a.is_preset).map((a: { slug: string }) => a.slug));
+    const missing = PRESET_AGENTS.filter((a) => !existingSlugs.has(a.slug));
 
-      await supabase.from("agents").insert(toInsert);
-      agents = await listAgents(user.id);
+    if (missing.length > 0) {
+      const supabase = await createClient();
+      if (supabase) {
+        const toInsert = missing.map((a) => ({
+          name: a.name,
+          slug: a.slug,
+          description: a.description,
+          long_description: a.long_description,
+          icon: a.icon,
+          color: a.color,
+          gradient: a.gradient,
+          system_prompt: a.system_prompt,
+          model: a.model,
+          is_preset: true,
+          is_public: true,
+          user_id: user.id,
+        }));
+
+        await supabase.from("agents").insert(toInsert);
+        agents = await listAgents(user.id);
+      }
     }
   }
 
