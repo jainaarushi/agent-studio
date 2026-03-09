@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { TaskSection } from "@/components/tasks/task-section";
 import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
 import { CreateTaskModal } from "@/components/tasks/create-task-modal";
@@ -10,9 +10,23 @@ import { useTasks } from "@/lib/hooks/use-tasks";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P } from "@/lib/palette";
-import { getPastel } from "@/lib/utils/pastels";
-import { AgentAvatar } from "@/components/agents/agent-avatar";
+import { ChevronRight } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
+
+const AGENT_THUMBNAILS: Record<string, string> = {
+  scout: "/agents/researcher.jpg",
+  quill: "/agents/writer.jpg",
+  metric: "/agents/analyst.jpg",
+  atlas: "/agents/assistant.jpg",
+  voyager: "/agents/travel-planner.jpg",
+  pulse: "/agents/finance.jpg",
+  sleuth: "/agents/web-intel.jpg",
+  caster: "/agents/converter.jpg",
+  architect: "/agents/tech-lead.jpg",
+  catalyst: "/agents/sales-rep.jpg",
+  vitalis: "/agents/fitness-coach.jpg",
+  strategist: "/agents/consultant.jpg",
+};
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -32,6 +46,8 @@ export default function TodayPage() {
   const [bulkLoading, setBulkLoading] = useState(false);
 
   useRealtimeTasks(mutate);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollBtn, setShowScrollBtn] = useState(true);
 
   const reviewTasks = tasks.filter((t) => t.status === "review");
   const workingTasks = tasks.filter((t) => t.status === "working");
@@ -195,101 +211,153 @@ export default function TodayPage() {
         </button>
       </div>
 
-      {/* AI Agents — Canva-style horizontal scroll */}
-      <div style={{ marginBottom: 24, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both" }}>
+      {/* AI Agents — Canva-style thumbnail cards with scroll */}
+      <div style={{ marginBottom: 28, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: P.text, marginBottom: 12 }}>
           Your AI agents
         </div>
-        <div style={{
-          display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8,
-          scrollSnapType: "x mandatory",
-          msOverflowStyle: "none", scrollbarWidth: "none",
-        }}>
-          <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
-          {agents.map((agent, i) => {
-            const pastel = getPastel(agent.color);
-            const busy = workingTasks.some((t) => t.agent_id === agent.id);
-            return (
-              <div
-                key={agent.id}
-                onClick={() => setShowCreateModal(true)}
+
+        {/* Scroll container */}
+        <div style={{ position: "relative" }}>
+          <div
+            ref={scrollRef}
+            className="agent-scroll"
+            onScroll={() => {
+              const el = scrollRef.current;
+              if (el) setShowScrollBtn(el.scrollLeft < el.scrollWidth - el.clientWidth - 20);
+            }}
+            style={{
+              display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8,
+              scrollSnapType: "x mandatory", scrollBehavior: "smooth",
+              msOverflowStyle: "none", scrollbarWidth: "none",
+            }}
+          >
+            <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
+            {agents.map((agent, i) => {
+              const thumb = AGENT_THUMBNAILS[agent.slug];
+              const busy = workingTasks.some((t) => t.agent_id === agent.id);
+              return (
+                <div
+                  key={agent.id}
+                  onClick={() => setShowCreateModal(true)}
+                  style={{
+                    flexShrink: 0, width: 170,
+                    borderRadius: 16, cursor: "pointer",
+                    overflow: "hidden",
+                    scrollSnapAlign: "start",
+                    animation: `popIn 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both`,
+                    transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+                    backgroundColor: P.card,
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+                    border: `1px solid ${P.border}`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-4px) scale(1.02)";
+                    e.currentTarget.style.boxShadow = `0 12px 32px rgba(0,0,0,0.08)`;
+                    e.currentTarget.style.borderColor = P.borderHover;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0) scale(1)";
+                    e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
+                    e.currentTarget.style.borderColor = P.border;
+                  }}
+                >
+                  {/* Thumbnail */}
+                  <div style={{
+                    width: "100%", height: 100, position: "relative",
+                    overflow: "hidden",
+                  }}>
+                    {thumb ? (
+                      <img
+                        src={thumb}
+                        alt={agent.name}
+                        style={{
+                          width: "100%", height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: "100%", height: "100%",
+                        background: agent.gradient,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 32,
+                      }}>
+                        {agent.icon}
+                      </div>
+                    )}
+                    {/* Busy indicator */}
+                    {busy && (
+                      <div style={{
+                        position: "absolute", top: 8, right: 8, zIndex: 3,
+                        display: "flex", gap: 2, backgroundColor: "rgba(255,255,255,0.8)",
+                        borderRadius: 10, padding: "3px 6px",
+                      }}>
+                        {[0, 1, 2].map((d) => (
+                          <span key={d} style={{
+                            width: 4, height: 4, borderRadius: "50%",
+                            backgroundColor: agent.color,
+                            animation: `bounce 1.2s ease-in-out ${d * 0.15}s infinite`,
+                          }} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Label */}
+                  <div style={{ padding: "10px 12px 12px" }}>
+                    <div style={{
+                      fontSize: 13, fontWeight: 700, color: P.text,
+                      marginBottom: 2,
+                    }}>
+                      {agent.name}
+                    </div>
+                    <div style={{
+                      fontSize: 11, color: P.textSec, fontWeight: 500,
+                    }}>
+                      {agent.description}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Right fade + scroll arrow */}
+          {showScrollBtn && (
+            <>
+              <div style={{
+                position: "absolute", right: 0, top: 0, bottom: 8,
+                width: 80, pointerEvents: "none",
+                background: "linear-gradient(to right, transparent, #FFF5DC)",
+                borderRadius: "0 16px 16px 0",
+              }} />
+              <button
+                onClick={() => {
+                  scrollRef.current?.scrollBy({ left: 360, behavior: "smooth" });
+                }}
                 style={{
-                  flexShrink: 0, width: 150, minHeight: 120,
-                  padding: "16px 14px 12px",
-                  backgroundColor: pastel.bg,
-                  borderRadius: 16, cursor: "pointer",
-                  position: "relative", overflow: "hidden",
-                  scrollSnapAlign: "start",
-                  animation: `popIn 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both`,
-                  transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+                  position: "absolute", right: 8, top: "50%", transform: "translateY(-60%)",
+                  width: 40, height: 40, borderRadius: "50%",
+                  backgroundColor: "#fff", border: "1px solid " + P.border,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", transition: "all 0.2s",
+                  zIndex: 5,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-4px) scale(1.02)";
-                  e.currentTarget.style.boxShadow = `0 12px 32px ${agent.color}18`;
+                  e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,0,0,0.12)";
+                  e.currentTarget.style.transform = "translateY(-60%) scale(1.08)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0) scale(1)";
-                  e.currentTarget.style.boxShadow = "none";
+                  e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)";
+                  e.currentTarget.style.transform = "translateY(-60%) scale(1)";
                 }}
               >
-                {/* Decorative shape */}
-                <div style={{
-                  position: "absolute", top: -10, right: -10,
-                  width: 50, height: 50, borderRadius: 14,
-                  backgroundColor: pastel.shape1, opacity: 0.5,
-                  transform: "rotate(15deg)",
-                }} />
-                <div style={{
-                  position: "absolute", bottom: 8, right: 8,
-                  width: 30, height: 30, borderRadius: "50%",
-                  backgroundColor: pastel.shape2,
-                }} />
-
-                {/* Icon */}
-                <div style={{
-                  width: 40, height: 40, borderRadius: 12,
-                  background: agent.gradient,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 20, marginBottom: 10,
-                  boxShadow: `0 4px 12px ${agent.color}25`,
-                  position: "relative", zIndex: 2,
-                }}>
-                  {agent.icon}
-                </div>
-
-                {/* Name */}
-                <div style={{
-                  fontSize: 13, fontWeight: 700, color: P.text,
-                  position: "relative", zIndex: 2,
-                  marginBottom: 2,
-                }}>
-                  {agent.name}
-                </div>
-                <div style={{
-                  fontSize: 10.5, color: agent.color, fontWeight: 600,
-                  position: "relative", zIndex: 2,
-                }}>
-                  {agent.description}
-                </div>
-
-                {/* Busy indicator */}
-                {busy && (
-                  <div style={{
-                    position: "absolute", top: 8, right: 8, zIndex: 3,
-                    display: "flex", gap: 2,
-                  }}>
-                    {[0, 1, 2].map((d) => (
-                      <span key={d} style={{
-                        width: 4, height: 4, borderRadius: "50%",
-                        backgroundColor: agent.color,
-                        animation: `bounce 1.2s ease-in-out ${d * 0.15}s infinite`,
-                      }} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                <ChevronRight size={20} color={P.textSec} />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
