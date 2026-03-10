@@ -27,6 +27,11 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
 
   const task = fullTask || initialTask;
 
+  // Reset user input when modal opens with a new task
+  useEffect(() => {
+    if (open) { setUserInput(""); setShowFeedback(false); setFeedback(""); }
+  }, [open, initialTask?.id]);
+
   // Auto-refresh while task is working
   useEffect(() => {
     if (!open || !task || task.status !== "working") return;
@@ -44,8 +49,18 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const isTodo = task.status === "todo";
   const isFailed = task.status === "failed";
 
+  const [userInput, setUserInput] = useState("");
+
   async function handleRun() {
     setLoading(true);
+    // Save user input as task description before running
+    if (userInput.trim()) {
+      await fetch(`/api/tasks/${task!.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: userInput.trim() }),
+      });
+    }
     const res = await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
     if (res.status === 401) {
       setLoading(false);
@@ -415,9 +430,24 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
             </div>
           )}
 
-          {/* Run button */}
+          {/* User input + Run button */}
           {task.agent_id && (isTodo || isFailed) && (
             <div style={{ marginBottom: 24 }}>
+              <textarea
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="Add details, context, or specific instructions for the agent... (optional)"
+                style={{
+                  width: "100%", minHeight: 80, padding: "12px 14px",
+                  borderRadius: 12, border: `1.5px solid ${P.border}`,
+                  backgroundColor: P.sidebar, color: P.text,
+                  fontSize: 14, fontFamily: "inherit", resize: "vertical",
+                  outline: "none", lineHeight: 1.5, marginBottom: 12,
+                  transition: "border-color 0.2s",
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = agent?.color || P.indigo; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
+              />
               <button
                 onClick={handleRun}
                 disabled={loading}
