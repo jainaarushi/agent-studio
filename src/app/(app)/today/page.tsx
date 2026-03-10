@@ -38,6 +38,7 @@ export default function TodayPage() {
   const [selectedTask, setSelectedTask] = useState<TaskWithAgent | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [previewAgent, setPreviewAgent] = useState<typeof agents[0] | null>(null);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -245,7 +246,7 @@ export default function TodayPage() {
                 <div
                   key={agent.id}
                   className="agent-card"
-                  onClick={() => setShowCreateModal(true)}
+                  onClick={() => setPreviewAgent(agent)}
                   style={{
                     borderRadius: 16, cursor: "pointer",
                     overflow: "hidden",
@@ -480,6 +481,106 @@ export default function TodayPage() {
         onBulkMove={handleBulkMove}
         loading={bulkLoading}
       />
+
+      {/* Agent preview modal */}
+      {previewAgent && (
+        <div
+          onClick={() => setPreviewAgent(null)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 600,
+            display: "flex", justifyContent: "center", alignItems: "center",
+          }}
+        >
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundColor: "rgba(24,24,27,0.35)",
+            backdropFilter: "blur(6px)",
+            animation: "fadeIn 0.2s ease",
+          }} />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 440, backgroundColor: P.card, borderRadius: 20,
+              boxShadow: P.shadowFloat, position: "relative",
+              animation: "modalIn 0.3s cubic-bezier(0.16,1,0.3,1)",
+              overflow: "hidden",
+            }}
+          >
+            {/* Gradient header */}
+            <div style={{
+              height: 80, background: previewAgent.gradient,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 36,
+            }}>
+              {previewAgent.icon}
+            </div>
+
+            <div style={{ padding: "20px 24px 24px" }}>
+              {/* Name + description */}
+              <h3 style={{
+                fontSize: 20, fontWeight: 800, color: P.text, margin: "0 0 4px",
+                letterSpacing: "-0.02em",
+              }}>
+                {previewAgent.name}
+              </h3>
+              <p style={{ fontSize: 13, color: previewAgent.color, fontWeight: 600, margin: "0 0 12px" }}>
+                {previewAgent.description}
+              </p>
+
+              {/* Long description */}
+              <p style={{
+                fontSize: 14, color: P.textSec, lineHeight: 1.6, margin: "0 0 20px",
+              }}>
+                {previewAgent.long_description || previewAgent.description}
+              </p>
+
+              {/* Model badge */}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "4px 10px", borderRadius: 6,
+                backgroundColor: P.sidebar, fontSize: 11, color: P.textTer,
+                fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                marginBottom: 20,
+              }}>
+                {previewAgent.model}
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => { setPreviewAgent(null); setShowCreateModal(true); }}
+                  style={{
+                    flex: 1, padding: "12px 0", borderRadius: 12, border: "none",
+                    background: previewAgent.gradient, color: "#fff",
+                    fontSize: 14, fontWeight: 700, cursor: "pointer",
+                    fontFamily: "inherit",
+                    boxShadow: `0 4px 14px ${previewAgent.color}30`,
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+                >
+                  Use this agent
+                </button>
+                <button
+                  onClick={() => setPreviewAgent(null)}
+                  style={{
+                    padding: "12px 20px", borderRadius: 12,
+                    border: `1.5px solid ${P.border}`,
+                    backgroundColor: P.card, color: P.textSec,
+                    fontSize: 14, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "inherit", transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = P.sidebar; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = P.card; }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create task modal */}
       <CreateTaskModal
