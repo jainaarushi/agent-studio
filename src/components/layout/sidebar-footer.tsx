@@ -4,20 +4,18 @@ import { P } from "@/lib/palette";
 
 export function SidebarFooter() {
   return (
-    <div style={{ padding: "12px 10px 4px", borderTop: `1px solid ${P.border}` }}>
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+    <div style={{
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+      paddingTop: 8, borderTop: `1px solid ${P.border}`,
+    }}>
+      <kbd style={{
+        fontSize: 9, padding: "3px 6px", borderRadius: 5,
+        border: `1px solid ${P.border}`, backgroundColor: P.sidebar,
+        color: P.textTer,
+        fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
       }}>
-        <kbd style={{
-          fontSize: 10, padding: "2px 5px", borderRadius: 4,
-          border: `1px solid ${P.border}`, backgroundColor: P.sidebar,
-          color: P.textTer,
-          fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
-        }}>
-          ⌘K
-        </kbd>
-        <span style={{ fontSize: 10.5, color: P.textGhost }}>Search</span>
-      </div>
+        ⌘K
+      </kbd>
     </div>
   );
 }

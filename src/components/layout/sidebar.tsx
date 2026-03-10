@@ -1,7 +1,6 @@
 "use client";
 
 import { SidebarNav } from "./sidebar-nav";
-import { SidebarCosts } from "./sidebar-costs";
 import { SidebarFooter } from "./sidebar-footer";
 import { P } from "@/lib/palette";
 import type { TaskWithAgent } from "@/lib/types/task";
@@ -19,47 +18,35 @@ interface SidebarProps {
 export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
   return (
     <div style={{
-      width: 244,
+      width: 72,
       backgroundColor: P.sidebar,
       borderRight: `1px solid ${P.border}`,
-      padding: "18px 12px",
+      padding: "16px 6px",
       display: "flex",
       flexDirection: "column",
+      alignItems: "center",
       position: "sticky",
       top: 0,
       height: "100vh",
     }}>
-      {/* Brand */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 8px 22px" }}>
-        <div style={{
-          width: 30, height: 30, borderRadius: 9,
-          background: "linear-gradient(135deg, #4F46E5, #6366F1)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 15, fontWeight: 900, color: "#fff",
-          boxShadow: "0 2px 10px rgba(99,102,241,0.3)",
-        }}>
-          C
-        </div>
-        <span style={{ fontSize: 15, fontWeight: 800, color: P.text, letterSpacing: "-0.03em" }}>
-          AgentStudio
-        </span>
-        <span style={{
-          fontSize: 10, fontWeight: 700, color: P.indigo,
-          backgroundColor: P.indigoLight, padding: "1px 6px",
-          borderRadius: 5, marginLeft: 2,
-        }}>
-          beta
-        </span>
+      {/* Logo */}
+      <div style={{
+        width: 38, height: 38, borderRadius: 12,
+        background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 17, fontWeight: 900, color: "#fff",
+        boxShadow: "0 2px 10px rgba(99,102,241,0.3)",
+        marginBottom: 24,
+        cursor: "pointer",
+      }}>
+        A
       </div>
 
       {/* Navigation */}
       <SidebarNav reviewCount={reviewCount} doneTasks={stats.working + stats.review} />
 
-      {/* Separator */}
-      <div style={{ height: 1, backgroundColor: P.border, margin: "16px 8px" }} />
-
-      {/* Cost Tracker */}
-      <SidebarCosts tasks={tasks} />
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
 
       {/* Footer */}
       <SidebarFooter />

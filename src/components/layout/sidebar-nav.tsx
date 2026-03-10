@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { P } from "@/lib/palette";
-import { CalendarDays, Bot, BarChart3, CheckCircle2, Settings } from "lucide-react";
+import { Home, Layers, BarChart3, CheckCircle2, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface SidebarNavProps {
@@ -12,8 +12,8 @@ interface SidebarNavProps {
 }
 
 const NAV_ITEMS: { href: string; icon: LucideIcon; label: string }[] = [
-  { href: "/today", icon: CalendarDays, label: "Today" },
-  { href: "/agents", icon: Bot, label: "Agents" },
+  { href: "/today", icon: Home, label: "Home" },
+  { href: "/agents", icon: Layers, label: "Agents" },
   { href: "/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/completed", icon: CheckCircle2, label: "Completed" },
   { href: "/settings", icon: Settings, label: "Settings" },
@@ -23,7 +23,7 @@ export function SidebarNav({ reviewCount }: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <nav style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
         const showBadge = item.href === "/today" && reviewCount > 0;
@@ -35,18 +35,18 @@ export function SidebarNav({ reviewCount }: SidebarNavProps) {
             href={item.href}
             style={{
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
-              gap: 10,
-              padding: "8px 12px",
-              borderRadius: 8,
+              gap: 3,
+              padding: "10px 6px 8px",
+              borderRadius: 12,
               cursor: "pointer",
               transition: "all 0.15s",
               textDecoration: "none",
               backgroundColor: isActive ? P.sidebarActive : "transparent",
-              fontWeight: isActive ? 600 : 500,
-              color: isActive ? P.text : P.textSec,
-              fontSize: 13.5,
-              letterSpacing: "-0.01em",
+              color: isActive ? P.indigo : P.textTer,
+              width: "100%",
+              position: "relative",
             }}
             onMouseEnter={(e) => {
               if (!isActive) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.03)";
@@ -55,15 +55,22 @@ export function SidebarNav({ reviewCount }: SidebarNavProps) {
               if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
             }}
           >
-            <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} color={isActive ? P.text : P.textTer} />
-            <span style={{ flex: 1 }}>{item.label}</span>
+            <Icon size={20} strokeWidth={isActive ? 2 : 1.6} />
+            <span style={{
+              fontSize: 10, fontWeight: isActive ? 700 : 500,
+              letterSpacing: "0.01em",
+            }}>
+              {item.label}
+            </span>
             {showBadge && (
               <span style={{
-                fontSize: 11, fontWeight: 700,
-                color: P.coral,
-                backgroundColor: P.coral + "12",
-                padding: "1px 7px", borderRadius: 6,
-                minWidth: 20, textAlign: "center",
+                position: "absolute", top: 6, right: 10,
+                fontSize: 9, fontWeight: 700,
+                color: "#fff",
+                backgroundColor: P.coral,
+                padding: "1px 5px", borderRadius: 10,
+                minWidth: 16, textAlign: "center",
+                lineHeight: "14px",
               }}>
                 {reviewCount}
               </span>
