@@ -281,7 +281,7 @@ export default function TodayPage() {
       </div>
 
       {/* AI Agents — 2-row Canva-style grid with horizontal scroll — full width */}
-      <div style={{ marginBottom: 28, marginLeft: -40, marginRight: -40, marginTop: -6, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
+      <div style={{ marginBottom: 28, marginLeft: -24, marginRight: -24, marginTop: -6, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
         <div style={{ position: "relative" }}>
           <div
             ref={scrollRef}
@@ -297,7 +297,7 @@ export default function TodayPage() {
               gridAutoColumns: "250px",
               gap: 10,
               overflowX: "auto",
-              paddingLeft: 40,
+              paddingLeft: 24,
               paddingRight: 0,
               paddingBottom: 8,
               scrollSnapType: "x mandatory",
