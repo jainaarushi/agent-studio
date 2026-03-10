@@ -73,8 +73,10 @@ const AGENT_THUMBNAILS: Record<string, string> = {
   "journalist": "/agents/journalist.png",
   "speech-trainer": "/agents/speech-trainer.png",
   "customer-support": "/agents/customer-support.png",
-  "strategy-advisor": "/agents/consultant.jpg",
-  "travel-planner": "/agents/travel-planner.jpg",
+  "strategy-advisor": "/agents/strategy_advisor.png",
+  "travel-planner": "/agents/Travel_planner.png",
+  "code-reviewer": "/agents/code_reviewer.png",
+  "mental-wellbeing": "/agents/wellbeing.png",
 };
 
 export default function TodayPage() {
