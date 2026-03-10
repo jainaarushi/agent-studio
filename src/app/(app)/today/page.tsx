@@ -6,6 +6,7 @@ import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
 import { CreateTaskModal } from "@/components/tasks/create-task-modal";
 import { BulkActionsBar } from "@/components/tasks/bulk-actions-bar";
 import { Confetti } from "@/components/shared/confetti";
+import { UsagePanel } from "@/components/shared/usage-panel";
 import { useTasks } from "@/lib/hooks/use-tasks";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
@@ -393,6 +394,9 @@ export default function TodayPage() {
           border: "1px solid #EBEBEB",
         }}>⌘N</kbd>
       </div>
+
+      {/* Usage panel — cost & tokens */}
+      <UsagePanel tasks={tasks} />
 
       {/* Tasks header — status + select */}
       <div style={{
