@@ -31,29 +31,15 @@ export async function GET() {
 
   let agents = await listAgents(user.id);
 
-  // Auto-sync: ensure preset agents match the codebase exactly
+  // Auto-seed: add any missing preset agents (handles new agents added to the codebase)
   if (isSupabaseEnabled()) {
-    const presetAgents = agents.filter((a: { is_preset?: boolean }) => a.is_preset);
-    const existingSlugs = new Set(presetAgents.map((a: { slug: string }) => a.slug));
-    const expectedSlugs = new Set(PRESET_AGENTS.map((a) => a.slug));
+    const existingSlugs = new Set(agents.filter((a: { is_preset?: boolean }) => a.is_preset).map((a: { slug: string }) => a.slug));
     const missing = PRESET_AGENTS.filter((a) => !existingSlugs.has(a.slug));
-    const stale = presetAgents.filter((a: { slug: string }) => !expectedSlugs.has(a.slug));
 
-    // If there are stale agents (old slugs) or missing agents, do a full refresh
-    if (stale.length > 0 || missing.length > 0) {
+    if (missing.length > 0) {
       const supabase = await createClient();
       if (supabase) {
-        // Delete all old preset agents
-        if (stale.length > 0) {
-          await supabase
-            .from("agents")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("is_preset", true);
-        }
-
-        // Insert all preset agents fresh (or just missing ones if no stale)
-        const toInsert = (stale.length > 0 ? PRESET_AGENTS : missing).map((a) => ({
+        const toInsert = missing.map((a) => ({
           name: a.name,
           slug: a.slug,
           description: a.description,
@@ -74,12 +60,12 @@ export async function GET() {
     }
   }
 
-  // Sort agents to match PRESET_AGENTS order (presets first, then custom)
+  // Sort agents to match the seed file order (preset first in defined order, custom at end)
   const slugOrder = new Map(PRESET_AGENTS.map((a, i) => [a.slug, i]));
   agents.sort((a: { slug: string; is_preset?: boolean }, b: { slug: string; is_preset?: boolean }) => {
-    const aOrder = slugOrder.get(a.slug) ?? 9999;
-    const bOrder = slugOrder.get(b.slug) ?? 9999;
-    return aOrder - bOrder;
+    const aIdx = slugOrder.get(a.slug) ?? 9999;
+    const bIdx = slugOrder.get(b.slug) ?? 9999;
+    return aIdx - bIdx;
   });
 
   return NextResponse.json(agents);
