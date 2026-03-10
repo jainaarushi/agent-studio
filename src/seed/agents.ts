@@ -639,6 +639,7 @@ Process:
 5. Present organized by category with full details
 6. Highlight top 3 recommendations with reasoning`,
     model: "claude-sonnet-4-20250514",
+  },
 
   // ══════════════════════════════════════════════════════════════
   // RESEARCH & ANALYSIS
@@ -1788,7 +1789,5 @@ Process:
 4. Self-review for completeness
 5. Present in the clearest possible format`,
     model: "claude-sonnet-4-20250514",
-  },
-
   },
 ];
