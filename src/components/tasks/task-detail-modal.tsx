@@ -24,6 +24,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const [loginPrompt, setLoginPrompt] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
+  const [userInput, setUserInput] = useState("");
 
   const task = fullTask || initialTask;
 
@@ -48,8 +49,6 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const isWorking = task.status === "working";
   const isTodo = task.status === "todo";
   const isFailed = task.status === "failed";
-
-  const [userInput, setUserInput] = useState("");
 
   async function handleRun() {
     setLoading(true);
