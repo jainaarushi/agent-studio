@@ -129,7 +129,7 @@ export default function LandingPage() {
               backgroundColor: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)",
               fontSize: 13, fontWeight: 600, color: "#6366F1",
             }}>
-              <Sparkles size={14} /> One Workspace. Every AI Agent.
+              <Sparkles size={14} /> Think Canva, but for AI Agents
             </span>
           </motion.div>
 
