@@ -335,7 +335,7 @@ export default function TodayPage() {
               display: "grid",
               gridTemplateRows: "1fr 1fr",
               gridAutoFlow: "column",
-              gridAutoColumns: "200px",
+              gridAutoColumns: "180px",
               gap: 10,
               overflowX: "auto",
               paddingLeft: 24,
