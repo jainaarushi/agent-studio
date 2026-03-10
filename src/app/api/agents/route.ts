@@ -7,6 +7,8 @@ import { PRESET_AGENTS } from "@/seed/agents";
 import { mockAgents } from "@/lib/mock-data";
 import { z } from "zod";
 
+const DEMO_USER_ID = "u1000000-0000-0000-0000-000000000001";
+
 const createAgentSchema = z.object({
   name: z.string().min(1).max(100),
   slug: z.string().min(1).max(100),
@@ -29,25 +31,29 @@ export async function GET() {
 
   let agents = await listAgents(user.id);
 
-  // Auto-seed: re-seed when preset count or first agent doesn't match
+  // Auto-sync: ensure preset agents match the codebase exactly
   if (isSupabaseEnabled()) {
     const presetAgents = agents.filter((a: { is_preset?: boolean }) => a.is_preset);
-    const needsReseed =
-      presetAgents.length !== PRESET_AGENTS.length ||
-      (presetAgents.length > 0 && presetAgents[0].slug !== PRESET_AGENTS[0].slug);
+    const existingSlugs = new Set(presetAgents.map((a: { slug: string }) => a.slug));
+    const expectedSlugs = new Set(PRESET_AGENTS.map((a) => a.slug));
+    const missing = PRESET_AGENTS.filter((a) => !existingSlugs.has(a.slug));
+    const stale = presetAgents.filter((a: { slug: string }) => !expectedSlugs.has(a.slug));
 
-    if (needsReseed) {
+    // If there are stale agents (old slugs) or missing agents, do a full refresh
+    if (stale.length > 0 || missing.length > 0) {
       const supabase = await createClient();
       if (supabase) {
         // Delete all old preset agents
-        await supabase
-          .from("agents")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("is_preset", true);
+        if (stale.length > 0) {
+          await supabase
+            .from("agents")
+            .delete()
+            .eq("user_id", user.id)
+            .eq("is_preset", true);
+        }
 
-        // Insert all preset agents fresh in correct order
-        const toInsert = PRESET_AGENTS.map((a) => ({
+        // Insert all preset agents fresh (or just missing ones if no stale)
+        const toInsert = (stale.length > 0 ? PRESET_AGENTS : missing).map((a) => ({
           name: a.name,
           slug: a.slug,
           description: a.description,
