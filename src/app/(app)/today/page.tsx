@@ -614,7 +614,7 @@ export default function TodayPage() {
                 fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
                 marginBottom: 20,
               }}>
-                {previewAgent.model}
+                {previewAgent.model.includes("claude") ? "Anthropic Claude" : previewAgent.model.includes("gemini") ? "Google Gemini" : previewAgent.model.includes("gpt") ? "OpenAI GPT" : "AI-Powered"}
               </div>
 
               {/* Actions */}
