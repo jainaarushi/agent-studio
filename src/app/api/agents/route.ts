@@ -60,6 +60,14 @@ export async function GET() {
     }
   }
 
+  // Deduplicate by slug — keep the first occurrence (newer wins since auto-seed adds latest)
+  const seen = new Set<string>();
+  agents = agents.filter((a: { slug: string }) => {
+    if (seen.has(a.slug)) return false;
+    seen.add(a.slug);
+    return true;
+  });
+
   // Sort agents to match the seed file order (preset first in defined order, custom at end)
   const slugOrder = new Map(PRESET_AGENTS.map((a, i) => [a.slug, i]));
   agents.sort((a: { slug: string; is_preset?: boolean }, b: { slug: string; is_preset?: boolean }) => {
