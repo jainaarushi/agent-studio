@@ -284,9 +284,9 @@ export default function TodayPage() {
                       alt={agent.name}
                       className="agent-thumb-img"
                       style={{
-                        width: "110%", height: "110%",
+                        width: "100%", height: "100%",
                         objectFit: "cover", display: "block",
-                        marginLeft: "-5%", marginTop: "-5%",
+                        transform: "scale(1.15)",
                       }}
                     />
                   ) : (
