@@ -348,7 +348,7 @@ export default function TodayPage() {
           >
             <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
             {(() => {
-              const prioritySlugs = ["content-creator", "linkedin-post", "academic-researcher", "product-launch", "travel-planner", "recipe-planner"];
+              const prioritySlugs = ["ux-designer", "content-creator", "linkedin-post", "academic-researcher", "product-launch", "travel-planner", "recipe-planner"];
               const sorted = [...agents].sort((a, b) => {
                 const aIdx = prioritySlugs.indexOf(a.slug);
                 const bIdx = prioritySlugs.indexOf(b.slug);
