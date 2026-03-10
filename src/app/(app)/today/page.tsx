@@ -448,7 +448,7 @@ export default function TodayPage() {
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <span style={{ flex: 1, color: P.textTer, fontWeight: 500 }}>What do you need done?</span>
+        <span style={{ flex: 1, color: P.textTer, fontWeight: 500 }}>Create a task</span>
         <kbd style={{
           fontSize: 10, padding: "3px 8px", borderRadius: 6,
           backgroundColor: "#F5F5F3",

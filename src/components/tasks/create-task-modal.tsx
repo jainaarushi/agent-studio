@@ -312,7 +312,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents }: CreateTaskM
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSubmit();
               }}
-              placeholder="What do you need done?"
+              placeholder="Create a task"
               style={{
                 flex: 1, border: "none", outline: "none",
                 fontSize: 16, color: P.text, backgroundColor: "transparent",
