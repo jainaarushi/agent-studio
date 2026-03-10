@@ -2,343 +2,453 @@
 
 import { motion } from "framer-motion";
 import {
-  Bot, Sparkles, Zap, BarChart3, Command, Users, Palette, ArrowRight,
-  ChevronRight, Star, Shield, Layers, MousePointerClick, BrainCircuit,
-  Search, ListChecks, PaintBucket
+  Bot, Sparkles, ArrowRight, ChevronRight, Zap, Brain,
+  Layers, BarChart3, MessageSquare, Palette, Shield, Clock,
+  Star, Flame, Music, Heart, Briefcase, Code, Dumbbell, Plane,
 } from "lucide-react";
 
-const agents = [
-  { name: "Scout", role: "Research & Discovery", color: "bg-emerald-400/15 text-emerald-400" },
-  { name: "Quill", role: "Writing & Content", color: "bg-sky-400/15 text-sky-400" },
-  { name: "Metric", role: "Data & Analytics", color: "bg-violet-400/15 text-violet-400" },
-  { name: "Atlas", role: "Planning & Strategy", color: "bg-amber-400/15 text-amber-400" },
-  { name: "Voyager", role: "Exploration & Trends", color: "bg-rose-400/15 text-rose-400" },
-  { name: "Pulse", role: "Monitoring & Alerts", color: "bg-cyan-400/15 text-cyan-400" },
-  { name: "Sleuth", role: "Debugging & QA", color: "bg-orange-400/15 text-orange-400" },
-  { name: "Caster", role: "Forecasting", color: "bg-indigo-400/15 text-indigo-400" },
-  { name: "Architect", role: "System Design", color: "bg-teal-400/15 text-teal-400" },
-  { name: "Catalyst", role: "Automation", color: "bg-pink-400/15 text-pink-400" },
-  { name: "Vitalis", role: "Health & Wellness", color: "bg-lime-400/15 text-lime-400" },
-  { name: "Strategist", role: "Decision Making", color: "bg-fuchsia-400/15 text-fuchsia-400" },
+const POPULAR_AGENTS = [
+  { name: "Roast Master", desc: "Get hilariously roasted", icon: "🔥", bg: "#FFE0E6" },
+  { name: "Dream Interpreter", desc: "Decode your dreams", icon: "🌙", bg: "#E8D5F5" },
+  { name: "Villain Origin", desc: "Your supervillain backstory", icon: "🦹", bg: "#D5E8F5" },
+  { name: "Rap Battle", desc: "AI drops bars", icon: "🎤", bg: "#D5F5E0" },
+  { name: "Fortune Teller", desc: "Mystical predictions", icon: "🔮", bg: "#F5E6D5" },
+  { name: "Dating Profile", desc: "Swipe-right worthy bios", icon: "💘", bg: "#FFE0E6" },
+  { name: "Deep Research", desc: "Multi-source analysis", icon: "🔭", bg: "#E8D5F5" },
+  { name: "Content Creator", desc: "Blog, email, social", icon: "✒️", bg: "#D5E8F5" },
+  { name: "Data Analyst", desc: "Numbers to insights", icon: "📊", bg: "#D5F5E0" },
+  { name: "System Architect", desc: "Design scalable systems", icon: "🏗️", bg: "#F5E6D5" },
+  { name: "Startup Ideas", desc: "Million-dollar concepts", icon: "💡", bg: "#FFE0E6" },
+  { name: "Song Lyrics", desc: "Write songs in any genre", icon: "🎵", bg: "#E8D5F5" },
 ];
 
-const features = [
-  {
-    icon: BrainCircuit,
-    title: "Smart Agent Suggestions",
-    description: "As you type a task, AgentStudio recommends the best agents based on keywords and context.",
-  },
-  {
-    icon: Layers,
-    title: "Multi-Agent Pipelines",
-    description: "Select multiple agents and drag-and-drop to reorder their execution sequence for complex workflows.",
-  },
-  {
-    icon: Command,
-    title: "Command Palette (\u2318K)",
-    description: "Search tasks, agents, and navigate instantly. Power-user shortcuts for everything.",
-  },
-  {
-    icon: BarChart3,
-    title: "Analytics Dashboard",
-    description: "Status distribution, agent performance, priority breakdown, and token usage at a glance.",
-  },
-  {
-    icon: ListChecks,
-    title: "Bulk Operations",
-    description: "Select multiple tasks to delete, change priority, or move sections in one click.",
-  },
-  {
-    icon: PaintBucket,
-    title: "Custom Agent Builder",
-    description: "Build your own agents with custom icons, colors, AI models, and system prompts.",
-  },
+const FEATURES = [
+  { icon: Brain, title: "56 AI Agents", desc: "From roast comedy to system architecture — every agent has a unique personality and expertise." },
+  { icon: Layers, title: "Multi-Agent Pipelines", desc: "Chain agents together. Research → Write → Edit. Drag to reorder the sequence." },
+  { icon: MessageSquare, title: "Human Feedback Loop", desc: "Don't like the output? Give feedback and the agent revises — getting better each time." },
+  { icon: BarChart3, title: "Cost & Token Tracking", desc: "See exactly what each task costs. Per-task breakdown with token counts and agent performance." },
+  { icon: Zap, title: "Instant Setup", desc: "No signup needed to explore. Try any agent free — sign up only when you want to run them." },
+  { icon: Shield, title: "Your Keys, Your Data", desc: "Bring your own API keys. Encrypted with AES-256. We never see or store your keys in plain text." },
 ];
 
-const steps = [
-  { step: "01", title: "Create a Task", description: "Describe what you need done \u2014 write copy, analyze data, build a plan." },
-  { step: "02", title: "Agents Suggest Themselves", description: "AI recommends the best agents for your task. Pick one or chain multiple." },
-  { step: "03", title: "Execute & Collaborate", description: "Agents work in sequence. Review, iterate, and ship \u2014 together." },
+const STEPS = [
+  { num: "1", title: "Pick an Agent", desc: "Browse 56 specialized AI agents. Click one to see what it does — from research to rap battles.", color: "#7C3AED" },
+  { num: "2", title: "Describe Your Task", desc: "Type what you need in plain English. The agent understands context, tone, and nuance.", color: "#6366F1" },
+  { num: "3", title: "Review & Iterate", desc: "Get polished output in seconds. Not perfect? Add feedback and the agent revises.", color: "#4F46E5" },
+];
+
+const STATS = [
+  { num: "56", label: "AI Agents" },
+  { num: "20+", label: "Fun Agents" },
+  { num: "36", label: "Pro Agents" },
+  { num: "$0", label: "To Start" },
 ];
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
 };
 const stagger = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
 const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0 },
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
 export default function LandingPage() {
   return (
-    <div className="landing-dark min-h-screen overflow-x-hidden">
-      {/* Nav */}
-      <nav className="fixed top-0 inset-x-0 z-50 landing-glass border-b border-white/[0.06]">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-[#38bdf8]/20 flex items-center justify-center landing-glow">
-              <Bot className="h-4 w-4 text-[#38bdf8]" />
-            </div>
-            <span className="font-bold text-lg tracking-tight text-white">AgentStudio</span>
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAF8", color: "#111" }}>
+
+      {/* ─── NAV ─── */}
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
+        backgroundColor: "rgba(250,250,248,0.85)", backdropFilter: "blur(12px)",
+        borderBottom: "1px solid rgba(0,0,0,0.06)",
+      }}>
+        <div style={{
+          maxWidth: 1200, margin: "0 auto", padding: "0 24px",
+          height: 64, display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 10,
+              background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 14, fontWeight: 900, color: "#fff",
+            }}>A</div>
+            <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.03em" }}>AgentStudio</span>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-[#7a8ba0]">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#agents" className="hover:text-white transition-colors">Agents</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
+          <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+            <a href="#features" style={{ fontSize: 14, color: "#666", textDecoration: "none" }}>Features</a>
+            <a href="#agents" style={{ fontSize: 14, color: "#666", textDecoration: "none" }}>Agents</a>
+            <a href="#how-it-works" style={{ fontSize: 14, color: "#666", textDecoration: "none" }}>How It Works</a>
+            <a
+              href="/today"
+              style={{
+                padding: "8px 20px", borderRadius: 10,
+                background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+                color: "#fff", fontSize: 14, fontWeight: 600, textDecoration: "none",
+                boxShadow: "0 2px 12px rgba(99,102,241,0.3)",
+                transition: "all 0.2s",
+              }}
+            >
+              Get Started Free
+            </a>
           </div>
-          <a
-            href="/today"
-            className="px-4 py-2 rounded-lg bg-[#38bdf8] text-[#0a0e14] text-sm font-medium hover:bg-[#38bdf8]/90 transition-colors landing-glow"
-          >
-            Get Started
-          </a>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative pt-32 pb-20 px-6">
-        <div className="landing-grid absolute inset-0 opacity-20" />
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#38bdf8]/[0.08] rounded-full blur-[120px]" />
-        <div className="relative z-10 max-w-6xl mx-auto text-center">
-          <motion.div initial={fadeUp.hidden} animate={fadeUp.show} className="mb-6">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full landing-glass text-xs font-mono text-[#38bdf8] uppercase tracking-widest">
-              <Sparkles className="h-3 w-3 animate-pulse" />
-              1000s of AI Agents
+      {/* ─── HERO ─── */}
+      <section style={{ position: "relative", paddingTop: 140, paddingBottom: 80 }}>
+        {/* Gradient background */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 700,
+          background: "linear-gradient(180deg, #EDE9FE 0%, #F3E8FF 25%, #FDF2F8 50%, #FAFAF8 100%)",
+          zIndex: 0,
+        }} />
+        {/* Decorative blobs */}
+        <div style={{
+          position: "absolute", top: 100, left: "10%", width: 400, height: 400,
+          background: "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)",
+          borderRadius: "50%", zIndex: 0,
+        }} />
+        <div style={{
+          position: "absolute", top: 200, right: "5%", width: 300, height: 300,
+          background: "radial-gradient(circle, rgba(236,72,153,0.06) 0%, transparent 70%)",
+          borderRadius: "50%", zIndex: 0,
+        }} />
+
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
+          {/* Badge */}
+          <motion.div initial={fadeUp.hidden} animate={fadeUp.show}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "6px 16px", borderRadius: 50,
+              backgroundColor: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)",
+              fontSize: 13, fontWeight: 600, color: "#6366F1",
+            }}>
+              <Sparkles size={14} /> 56 AI Agents Ready to Work
             </span>
           </motion.div>
 
+          {/* Headline */}
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6 text-white"
+            transition={{ duration: 0.7, delay: 0.1 }}
+            style={{
+              fontSize: "clamp(40px, 6vw, 72px)", fontWeight: 900,
+              letterSpacing: "-0.04em", lineHeight: 1.08,
+              margin: "28px 0 20px", color: "#111",
+            }}
           >
-            Your Daily Workspace for
+            What will you create
             <br />
-            <span className="landing-text-gradient">Human–AI Collaboration</span>
+            <span style={{
+              background: "linear-gradient(135deg, #4F46E5, #7C3AED, #EC4899)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>
+              with AI today?
+            </span>
           </motion.h1>
 
+          {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            className="text-lg sm:text-xl text-[#7a8ba0] max-w-2xl mx-auto mb-10"
+            style={{ fontSize: 19, color: "#666", maxWidth: 560, margin: "0 auto 36px", lineHeight: 1.6 }}
           >
-            Create tasks, let AI agents suggest themselves, chain them into pipelines,
-            and ship work faster — all in a Canva-inspired interface.
+            56 specialized AI agents for research, writing, coding, strategy, and fun.
+            Just describe your task — the right agent handles the rest.
           </motion.p>
 
+          {/* CTA buttons */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.35 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}
           >
             <a
               href="/today"
-              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-[#38bdf8] text-[#0a0e14] font-semibold hover:bg-[#38bdf8]/90 transition-colors landing-glow text-base"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "14px 32px", borderRadius: 14,
+                background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+                color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none",
+                boxShadow: "0 4px 20px rgba(99,102,241,0.35)",
+                transition: "all 0.2s",
+              }}
             >
-              Get Started
-              <ArrowRight className="h-4 w-4" />
+              Start Creating <ArrowRight size={18} />
             </a>
             <a
-              href="#features"
-              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-white/[0.06] text-white/80 font-semibold hover:bg-white/[0.1] transition-colors text-base"
+              href="#agents"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "14px 32px", borderRadius: 14,
+                backgroundColor: "#fff", color: "#333",
+                fontSize: 16, fontWeight: 600, textDecoration: "none",
+                border: "1.5px solid #E5E5E5",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+                transition: "all 0.2s",
+              }}
             >
-              See Features
-              <ArrowRight className="h-4 w-4" />
+              Explore Agents
             </a>
           </motion.div>
 
-          {/* Hero Image */}
+          {/* Hero image */}
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.97 }}
+            initial={{ opacity: 0, y: 50, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.5 }}
-            className="mt-16 relative"
+            transition={{ duration: 0.8, delay: 0.5 }}
+            style={{ marginTop: 60, position: "relative" }}
           >
-            <div className="absolute -inset-4 bg-[#38bdf8]/5 rounded-3xl blur-2xl" />
-            <div className="relative rounded-2xl overflow-hidden border border-white/[0.08] shadow-2xl shadow-[#38bdf8]/5">
-              <img
-                src="/hero-dashboard.png"
-                alt="AgentStudio workspace showing AI agent cards, task management, command palette, and analytics dashboard"
-                className="w-full"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e14]/60 via-transparent to-transparent" />
+            <div style={{
+              position: "absolute", inset: -20,
+              background: "linear-gradient(135deg, rgba(99,102,241,0.06), rgba(236,72,153,0.04))",
+              borderRadius: 28, filter: "blur(30px)",
+            }} />
+            <div style={{
+              position: "relative", borderRadius: 20, overflow: "hidden",
+              border: "1px solid rgba(0,0,0,0.08)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)",
+            }}>
+              <img src="/hero-dashboard.png" alt="AgentStudio workspace" style={{ width: "100%", display: "block" }} />
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(to top, rgba(250,250,248,0.4) 0%, transparent 30%)",
+              }} />
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeUp}
-            className="text-center mb-16"
-          >
-            <span className="text-xs font-mono text-[#38bdf8] uppercase tracking-widest">Features</span>
-            <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 text-white">Everything you need to orchestrate AI</h2>
-            <p className="text-[#7a8ba0] max-w-lg mx-auto">
-              From smart suggestions to multi-agent pipelines — designed to make you unstoppable.
+      {/* ─── STATS BAR ─── */}
+      <section style={{ padding: "0 24px", marginTop: -40, position: "relative", zIndex: 2 }}>
+        <motion.div
+          initial="hidden" whileInView="show" viewport={{ once: true }}
+          variants={fadeUp}
+          style={{
+            maxWidth: 800, margin: "0 auto",
+            display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0,
+            backgroundColor: "#fff", borderRadius: 20, overflow: "hidden",
+            border: "1px solid #EBEBEB",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+          }}
+        >
+          {STATS.map((s, i) => (
+            <div key={s.label} style={{
+              padding: "24px 0", textAlign: "center",
+              borderRight: i < 3 ? "1px solid #F0F0F0" : "none",
+            }}>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#4F46E5", letterSpacing: "-0.03em" }}>{s.num}</div>
+              <div style={{ fontSize: 13, color: "#888", fontWeight: 500, marginTop: 2 }}>{s.label}</div>
+            </div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* ─── AGENTS SHOWCASE ─── */}
+      <section id="agents" style={{ padding: "100px 24px 80px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 48 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>Meet Your Agents</span>
+            <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8, marginBottom: 12 }}>
+              Pick an agent. Describe your task. Ship it.
+            </h2>
+            <p style={{ fontSize: 17, color: "#666", maxWidth: 520, margin: "0 auto" }}>
+              From comedy roasts to deep research — there{"'"}s an agent for everything.
             </p>
           </motion.div>
 
           <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-50px" }}
+            initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }}
             variants={stagger}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
+            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}
           >
-            {features.map((f) => (
+            {POPULAR_AGENTS.map((agent) => (
+              <motion.a
+                key={agent.name}
+                href="/today"
+                variants={item}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: "14px 16px", borderRadius: 16,
+                  backgroundColor: agent.bg,
+                  textDecoration: "none", color: "#111",
+                  transition: "box-shadow 0.3s",
+                  cursor: "pointer",
+                }}
+              >
+                <span style={{ fontSize: 28, flexShrink: 0 }}>{agent.icon}</span>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>{agent.name}</div>
+                  <div style={{ fontSize: 11.5, color: "#666", marginTop: 1 }}>{agent.desc}</div>
+                </div>
+              </motion.a>
+            ))}
+          </motion.div>
+
+          <motion.div initial={fadeUp.hidden} whileInView={fadeUp.show} viewport={{ once: true }} style={{ textAlign: "center", marginTop: 32 }}>
+            <a href="/today" style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              fontSize: 15, fontWeight: 600, color: "#7C3AED", textDecoration: "none",
+            }}>
+              See all 56 agents <ArrowRight size={16} />
+            </a>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── FEATURES ─── */}
+      <section id="features" style={{ padding: "80px 24px", backgroundColor: "#fff" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 56 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>Features</span>
+            <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8, marginBottom: 12 }}>
+              Everything you need to orchestrate AI
+            </h2>
+            <p style={{ fontSize: 17, color: "#666", maxWidth: 500, margin: "0 auto" }}>
+              A complete workspace for humans and AI to collaborate — beautifully.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }}
+            variants={stagger}
+            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}
+          >
+            {FEATURES.map((f) => (
               <motion.div
                 key={f.title}
                 variants={item}
-                className="landing-glass rounded-2xl p-6 group hover:border-[#38bdf8]/20 transition-all"
+                style={{
+                  padding: "28px 24px", borderRadius: 18,
+                  border: "1px solid #F0F0F0", backgroundColor: "#FAFAF8",
+                  transition: "all 0.2s",
+                }}
               >
-                <div className="h-11 w-11 rounded-xl bg-[#38bdf8]/10 flex items-center justify-center mb-4 group-hover:landing-glow transition-all">
-                  <f.icon className="h-5 w-5 text-[#38bdf8]" />
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  backgroundColor: "rgba(99,102,241,0.08)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  marginBottom: 16,
+                }}>
+                  <f.icon size={22} color="#6366F1" strokeWidth={1.8} />
                 </div>
-                <h3 className="font-semibold text-lg mb-2 text-white">{f.title}</h3>
-                <p className="text-sm text-[#7a8ba0] leading-relaxed">{f.description}</p>
+                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, letterSpacing: "-0.01em" }}>{f.title}</h3>
+                <p style={{ fontSize: 14, color: "#666", lineHeight: 1.6 }}>{f.desc}</p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Agents */}
-      <section id="agents" className="py-24 px-6 relative">
-        <div className="absolute inset-0 bg-white/[0.02]" />
-        <div className="relative max-w-6xl mx-auto">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeUp}
-            className="text-center mb-16"
-          >
-            <span className="text-xs font-mono text-[#38bdf8] uppercase tracking-widest">Meet Your Crew</span>
-            <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 text-white">1000s of Specialized AI Agents</h2>
-            <p className="text-[#7a8ba0] max-w-lg mx-auto">
-              Each agent is purpose-built for a domain. Mix and match them into pipelines for complex workflows. Here are just a few.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={stagger}
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
-          >
-            {agents.map((agent) => (
-              <motion.div
-                key={agent.name}
-                variants={item}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="landing-glass rounded-xl p-4 cursor-default group hover:border-[#38bdf8]/20 transition-all text-center"
-              >
-                <div className={`h-12 w-12 rounded-xl ${agent.color} flex items-center justify-center mx-auto mb-3`}>
-                  <Bot className="h-5 w-5" />
-                </div>
-                <h3 className="font-semibold text-white">{agent.name}</h3>
-                <p className="text-xs text-[#7a8ba0] mt-1">{agent.role}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* How it Works */}
-      <section id="how-it-works" className="py-24 px-6">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeUp}
-            className="text-center mb-16"
-          >
-            <span className="text-xs font-mono text-[#38bdf8] uppercase tracking-widest">How It Works</span>
-            <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 text-white">Three Steps to Ship</h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={stagger}
-            className="space-y-6"
-          >
-            {steps.map((s) => (
-              <motion.div
-                key={s.step}
-                variants={item}
-                className="landing-glass rounded-2xl p-6 sm:p-8 flex items-start gap-6 group hover:border-[#38bdf8]/20 transition-all"
-              >
-                <span className="text-3xl font-bold text-[#38bdf8]/30 font-mono shrink-0">{s.step}</span>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-white">{s.title}</h3>
-                  <p className="text-[#7a8ba0]">{s.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-24 px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="max-w-3xl mx-auto text-center landing-glass rounded-3xl p-12 landing-glow relative overflow-hidden"
-        >
-          <div className="landing-grid absolute inset-0 opacity-20" />
-          <div className="relative z-10">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
-              Ready to work with <span className="landing-text-gradient">AI agents</span>?
+      {/* ─── HOW IT WORKS ─── */}
+      <section id="how-it-works" style={{ padding: "80px 24px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 56 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>How It Works</span>
+            <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8 }}>
+              Three steps. That{"'"}s it.
             </h2>
-            <p className="text-[#7a8ba0] mb-8 max-w-md mx-auto">
-              Self-hostable. Start collaborating with 1000s of specialized agents today.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href="/today"
-                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-[#38bdf8] text-[#0a0e14] font-semibold hover:bg-[#38bdf8]/90 transition-colors landing-glow"
+          </motion.div>
+
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }} variants={stagger} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {STEPS.map((s) => (
+              <motion.div
+                key={s.num}
+                variants={item}
+                style={{
+                  display: "flex", alignItems: "flex-start", gap: 24,
+                  padding: "28px 28px", borderRadius: 20,
+                  backgroundColor: "#fff", border: "1px solid #F0F0F0",
+                  transition: "all 0.2s",
+                }}
               >
-                Get Started Free
-                <ChevronRight className="h-4 w-4" />
-              </a>
-            </div>
+                <div style={{
+                  width: 48, height: 48, borderRadius: 14,
+                  background: `linear-gradient(135deg, ${s.color}, ${s.color}90)`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 20, fontWeight: 900, color: "#fff", flexShrink: 0,
+                }}>
+                  {s.num}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6, letterSpacing: "-0.01em" }}>{s.title}</h3>
+                  <p style={{ fontSize: 15, color: "#666", lineHeight: 1.6 }}>{s.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── CTA ─── */}
+      <section style={{ padding: "60px 24px 100px" }}>
+        <motion.div
+          initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}
+          style={{
+            maxWidth: 800, margin: "0 auto", textAlign: "center",
+            padding: "60px 40px", borderRadius: 28,
+            background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+            position: "relative", overflow: "hidden",
+            boxShadow: "0 20px 60px rgba(99,102,241,0.25)",
+          }}
+        >
+          {/* Decorative circles */}
+          <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.05)" }} />
+          <div style={{ position: "absolute", bottom: -60, left: -30, width: 300, height: 300, borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.03)" }} />
+
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <h2 style={{ fontSize: 36, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em", marginBottom: 12 }}>
+              Ready to work with AI?
+            </h2>
+            <p style={{ fontSize: 17, color: "rgba(255,255,255,0.75)", marginBottom: 32, maxWidth: 440, margin: "0 auto 32px" }}>
+              No credit card needed. Explore all 56 agents free — sign up when you{"'"}re ready.
+            </p>
+            <a
+              href="/today"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "14px 36px", borderRadius: 14,
+                backgroundColor: "#fff", color: "#4F46E5",
+                fontSize: 16, fontWeight: 700, textDecoration: "none",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+                transition: "all 0.2s",
+              }}
+            >
+              Get Started Free <ChevronRight size={18} />
+            </a>
           </div>
         </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-white/[0.06] py-8 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#7a8ba0]">
-          <div className="flex items-center gap-2">
-            <Bot className="h-4 w-4 text-[#38bdf8]" />
-            <span className="font-semibold text-white">AgentStudio</span>
+      {/* ─── FOOTER ─── */}
+      <footer style={{ borderTop: "1px solid #F0F0F0", padding: "24px" }}>
+        <div style={{
+          maxWidth: 1200, margin: "0 auto",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          fontSize: 13, color: "#999",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{
+              width: 24, height: 24, borderRadius: 7,
+              background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 10, fontWeight: 900, color: "#fff",
+            }}>A</div>
+            <span style={{ fontWeight: 700, color: "#333" }}>AgentStudio</span>
           </div>
-          <p>&copy; {new Date().getFullYear()} AgentStudio</p>
-          <a
-            href="/login"
-            className="hover:text-white transition-colors"
-          >
+          <p>&copy; {new Date().getFullYear()} AgentStudio. All rights reserved.</p>
+          <a href="/login" style={{ color: "#7C3AED", textDecoration: "none", fontWeight: 600 }}>
             Sign Up &rarr;
           </a>
         </div>
