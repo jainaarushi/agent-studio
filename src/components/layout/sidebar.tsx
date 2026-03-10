@@ -39,7 +39,7 @@ export function Sidebar({ stats, reviewCount, tasks }: SidebarProps) {
     <div style={{
       width: 72,
       backgroundColor: P.sidebar,
-      borderRight: `1px solid ${P.border}`,
+      borderRight: "2px solid #7C3AED",
       padding: "16px 6px",
       display: "flex",
       flexDirection: "column",

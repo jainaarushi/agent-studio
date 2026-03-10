@@ -60,7 +60,34 @@ export async function GET() {
     }
   }
 
-  // Deduplicate by slug — keep the first occurrence (newer wins since auto-seed adds latest)
+  // Clean up: delete preset agents whose slugs are no longer in the seed file,
+  // and delete duplicate rows (keep newest per slug)
+  if (isSupabaseEnabled()) {
+    const validSlugs = new Set(PRESET_AGENTS.map((a) => a.slug));
+    const supabase = await createClient();
+    if (supabase) {
+      // Find stale presets (slug not in current seed)
+      const staleIds = agents
+        .filter((a: { slug: string; is_preset?: boolean }) => a.is_preset && !validSlugs.has(a.slug))
+        .map((a: { id: string }) => a.id);
+
+      // Find duplicate rows per slug (keep first, delete rest)
+      const seenSlugs = new Set<string>();
+      const dupeIds: string[] = [];
+      for (const a of agents as { id: string; slug: string }[]) {
+        if (seenSlugs.has(a.slug)) dupeIds.push(a.id);
+        else seenSlugs.add(a.slug);
+      }
+
+      const toDelete = [...staleIds, ...dupeIds];
+      if (toDelete.length > 0) {
+        await supabase.from("agents").delete().in("id", toDelete);
+        agents = await listAgents(user.id);
+      }
+    }
+  }
+
+  // Deduplicate by slug (safety net for the response)
   const seen = new Set<string>();
   agents = agents.filter((a: { slug: string }) => {
     if (seen.has(a.slug)) return false;
