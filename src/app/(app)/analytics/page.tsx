@@ -31,7 +31,7 @@ export default function AnalyticsPage() {
       ? agentTasks.filter((t) => t.duration_seconds > 0).reduce((s, t) => s + t.duration_seconds, 0) / completed
       : 0;
     return { agent, total: agentTasks.length, completed, cost, avgDuration };
-  }).sort((a, b) => b.total - a.total);
+  }).sort((a, b) => b.total - a.total).slice(0, 5);
 
   // Priority breakdown
   const priorityCounts: Record<TaskPriority, number> = { urgent: 0, high: 0, normal: 0, low: 0 };
@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
           animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both",
         }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: P.text, marginBottom: 16 }}>
-            Agent Performance
+            Top Agent Performance
           </div>
           {agentStats.length === 0 && (
             <div style={{ color: P.textTer, fontSize: 13, padding: "20px 0", textAlign: "center" }}>
