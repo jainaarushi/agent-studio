@@ -23,8 +23,6 @@ export function TaskSection({
   selectable, selectedIds, onSelect,
   draggable, onReorder,
 }: TaskSectionProps) {
-  if (tasks.length === 0) return null;
-
   const color = accentColor || P.textGhost;
   let draggedId: string | null = null;
 
@@ -35,41 +33,55 @@ export function TaskSection({
       }}>
         <div style={{
           width: 8, height: 8, borderRadius: "50%", backgroundColor: color,
-          ...(dot ? { animation: "pulseGlow 2s infinite", boxShadow: `0 0 6px ${color}60` } : {}),
+          ...(dot && tasks.length > 0 ? { animation: "pulseGlow 2s infinite", boxShadow: `0 0 6px ${color}60` } : {}),
+          opacity: tasks.length === 0 ? 0.4 : 1,
         }} />
         <span style={{
           fontSize: 12, fontWeight: 700, letterSpacing: "0.06em",
           color: color === P.textGhost ? P.textTer : color,
+          opacity: tasks.length === 0 ? 0.5 : 1,
         }}>{label}</span>
-        <span style={{
-          fontSize: 11, fontWeight: 600, color: P.textGhost,
-          marginLeft: 2,
+        {tasks.length > 0 && (
+          <span style={{
+            fontSize: 11, fontWeight: 600, color: P.textGhost,
+            marginLeft: 2,
+          }}>
+            {tasks.length}
+          </span>
+        )}
+      </div>
+      {tasks.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {tasks.map((task, i) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              onClick={() => onTaskClick(task)}
+              onRun={onRunTask}
+              delay={i * 0.05}
+              selectable={selectable}
+              selected={selectedIds?.has(task.id)}
+              onSelect={onSelect}
+              draggable={draggable}
+              onDragStart={(id) => { draggedId = id; }}
+              onDragOver={(id) => {
+                if (draggedId && draggedId !== id) {
+                  onReorder?.(draggedId, id);
+                }
+              }}
+              onDragEnd={() => { draggedId = null; }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div style={{
+          padding: "10px 14px", borderRadius: 10,
+          border: `1px dashed ${P.border}`,
+          fontSize: 12.5, color: P.textGhost,
         }}>
-          {tasks.length}
-        </span>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {tasks.map((task, i) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onClick={() => onTaskClick(task)}
-            onRun={onRunTask}
-            delay={i * 0.05}
-            selectable={selectable}
-            selected={selectedIds?.has(task.id)}
-            onSelect={onSelect}
-            draggable={draggable}
-            onDragStart={(id) => { draggedId = id; }}
-            onDragOver={(id) => {
-              if (draggedId && draggedId !== id) {
-                onReorder?.(draggedId, id);
-              }
-            }}
-            onDragEnd={() => { draggedId = null; }}
-          />
-        ))}
-      </div>
+          No tasks
+        </div>
+      )}
     </div>
   );
 }

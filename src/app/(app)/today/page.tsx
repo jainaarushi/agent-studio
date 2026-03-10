@@ -379,19 +379,25 @@ export default function TodayPage() {
         }}>⌘N</kbd>
       </div>
 
-      {/* Tasks header — status + select (only show when tasks exist) */}
-      {tasks.length > 0 ? (
-        <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          marginBottom: 16,
-        }}>
-          <p style={{ fontSize: 13, color: P.textSec, margin: 0 }}>
-            {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span></>}
-            {reviewTasks.length > 0 && (workingTasks.length > 0 || todoTasks.length > 0) && " · "}
-            {workingTasks.length > 0 && <>{workingTasks.length} working</>}
-            {workingTasks.length > 0 && todoTasks.length > 0 && " · "}
-            {todoTasks.length > 0 && <>{todoTasks.length} to do</>}
-          </p>
+      {/* Tasks header — status + select */}
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        marginBottom: 16,
+      }}>
+        <p style={{ fontSize: 13, color: P.textSec, margin: 0 }}>
+          {tasks.length > 0 ? (
+            <>
+              {reviewTasks.length > 0 && <><span style={{ color: P.coral, fontWeight: 600 }}>{reviewTasks.length} to review</span></>}
+              {reviewTasks.length > 0 && (workingTasks.length > 0 || todoTasks.length > 0) && " · "}
+              {workingTasks.length > 0 && <>{workingTasks.length} working</>}
+              {workingTasks.length > 0 && todoTasks.length > 0 && " · "}
+              {todoTasks.length > 0 && <>{todoTasks.length} to do</>}
+            </>
+          ) : (
+            "Create a task to get started"
+          )}
+        </p>
+        {tasks.length > 0 && (
           <button
             onClick={() => { setBulkMode(!bulkMode); if (bulkMode) clearSelection(); }}
             style={{
@@ -406,22 +412,8 @@ export default function TodayPage() {
           >
             {bulkMode ? "Cancel" : "Select"}
           </button>
-        </div>
-      ) : (
-        <div style={{
-          textAlign: "center", padding: "32px 20px", marginBottom: 16,
-          borderRadius: 16, border: `1.5px dashed ${P.border}`,
-          animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.2s both",
-        }}>
-          <div style={{ fontSize: 32, marginBottom: 10 }}>🚀</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: P.text, marginBottom: 4 }}>
-            No tasks yet
-          </div>
-          <div style={{ fontSize: 13, color: P.textSec, lineHeight: 1.5 }}>
-            Click an agent above or create a task to get started
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Review section */}
       <TaskSection
