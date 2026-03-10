@@ -358,34 +358,38 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* Create task — prominent CTA */}
+      {/* Create task — Canva-style search bar */}
       <div
         onClick={() => setShowCreateModal(true)}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "#E8E8E5";
-          e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.06)";
-          e.currentTarget.style.transform = "translateY(-1px)";
+          e.currentTarget.style.borderColor = "#7C3AED";
+          e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.08), 0 4px 20px rgba(0,0,0,0.06)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "#F0EFEC";
+          e.currentTarget.style.borderColor = "#E5E5E5";
           e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.04)";
-          e.currentTarget.style.transform = "translateY(0)";
         }}
         style={{
-          marginBottom: 28, padding: "14px 20px", borderRadius: 12,
-          backgroundColor: "#F0EFEC",
-          fontSize: 14, color: P.text,
-          cursor: "pointer", transition: "all 0.2s",
-          fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "space-between",
+          marginBottom: 28, padding: "16px 22px", borderRadius: 16,
+          backgroundColor: "#fff",
+          border: "2px solid #E5E5E5",
+          fontSize: 15, color: P.text,
+          cursor: "pointer", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+          display: "flex", alignItems: "center", gap: 14,
           boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
         }}
       >
-        <span style={{ color: P.textSec }}>+ Create a new task</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={P.textTer} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span style={{ flex: 1, color: P.textTer, fontWeight: 500 }}>What do you need done?</span>
         <kbd style={{
-          fontSize: 10, padding: "2px 7px", borderRadius: 5,
-          backgroundColor: "rgba(0,0,0,0.06)",
+          fontSize: 10, padding: "3px 8px", borderRadius: 6,
+          backgroundColor: "#F5F5F3",
           color: P.textTer,
           fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+          border: "1px solid #EBEBEB",
         }}>⌘N</kbd>
       </div>
 
