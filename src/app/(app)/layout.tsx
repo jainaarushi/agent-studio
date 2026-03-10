@@ -66,7 +66,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           background: "linear-gradient(180deg, #DDD6FE 0%, #E9D5FF 30%, #FAFAF8 100%)",
           zIndex: 0, pointerEvents: "none",
         }} />
-        <div style={{ width: "100%", maxWidth: 1100, padding: "40px 24px", position: "relative", zIndex: 1 }}>
+        <div style={{ width: "100%", maxWidth: 1100, padding: "24px 24px", position: "relative", zIndex: 1 }}>
           {children}
         </div>
       </div>
