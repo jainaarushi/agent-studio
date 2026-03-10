@@ -235,7 +235,7 @@ export default function TodayPage() {
             <style>{`.agent-scroll::-webkit-scrollbar { display: none; }`}</style>
             {agents.map((agent, i) => {
               const thumb = AGENT_THUMBNAILS[agent.slug];
-              const pastelBg = PASTEL_BG[agent.color] || "#F5F3FF";
+              const pastelBg = CANVA_PASTELS[i % CANVA_PASTELS.length];
               const col = Math.floor(i / 2);
               const row = i % 2;
               const delay = col * 0.06 + row * 0.03;
