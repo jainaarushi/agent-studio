@@ -66,9 +66,11 @@ export async function GET() {
     const validSlugs = new Set(PRESET_AGENTS.map((a) => a.slug));
     const supabase = await createClient();
     if (supabase) {
-      // Find stale presets (slug not in current seed)
+      // Find stale preset agents: slug not in current seed file
+      // Targets is_preset OR is_public agents (old seeds may not have set is_preset)
       const staleIds = agents
-        .filter((a: { slug: string; is_preset?: boolean }) => a.is_preset && !validSlugs.has(a.slug))
+        .filter((a: { slug: string; is_preset?: boolean; is_public?: boolean }) =>
+          !validSlugs.has(a.slug) && (a.is_preset || a.is_public))
         .map((a: { id: string }) => a.id);
 
       // Find duplicate rows per slug (keep first, delete rest)
