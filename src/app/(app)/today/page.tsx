@@ -512,11 +512,11 @@ export default function TodayPage() {
             <div
               key={div.name}
               style={{
-                padding: "14px 14px 12px", borderRadius: 14,
+                padding: "10px 12px 9px", borderRadius: 12,
                 backgroundColor: "#fff",
                 border: `1px solid ${div.color}15`,
                 position: "relative", overflow: "hidden",
-                cursor: "default", flexShrink: 0, minWidth: 170,
+                cursor: "default", flexShrink: 0, minWidth: 150,
                 opacity: 0.85,
                 transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
                 animation: `cardReveal 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both`,
@@ -539,17 +539,17 @@ export default function TodayPage() {
                 background: `linear-gradient(90deg, ${div.color}, ${div.color}60)`,
                 opacity: 0.5,
               }} />
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 18 }}>{div.icon}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{div.name}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <span style={{ fontSize: 15 }}>{div.icon}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: P.text }}>{div.name}</span>
               </div>
-              <div style={{ fontSize: 10.5, color: P.textTer, lineHeight: 1.4, marginBottom: 6 }}>
+              <div style={{ fontSize: 10, color: P.textTer, lineHeight: 1.4, marginBottom: 5 }}>
                 {div.desc}
               </div>
               <div style={{
-                fontSize: 10, fontWeight: 700, color: div.color,
+                fontSize: 9, fontWeight: 700, color: div.color,
                 backgroundColor: div.color + "0a",
-                padding: "2px 7px", borderRadius: 6,
+                padding: "1px 6px", borderRadius: 5,
                 display: "inline-block",
               }}>
                 {div.count} specialists
