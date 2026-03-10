@@ -137,6 +137,21 @@ export default function TodayPage() {
     mutate();
   }
 
+  async function handleDropTask(taskId: string, targetSection: string) {
+    if (targetSection === "working") {
+      // Dropping a task onto AGENTS WORKING = run the agent
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      if (!task.agent_id) {
+        // No agent assigned — open the task detail to assign one
+        setSelectedTask(task);
+        return;
+      }
+      // Agent assigned — run it
+      handleRunTask(taskId);
+    }
+  }
+
   async function handleCreateTask(title: string, agentIds?: string[]) {
     const optimisticTask: TaskWithAgent = {
       id: `temp-${Date.now()}`,
@@ -418,6 +433,7 @@ export default function TodayPage() {
       {/* Review section */}
       <TaskSection
         label="READY FOR REVIEW"
+        sectionId="review"
         tasks={reviewTasks}
         onTaskClick={bulkMode ? () => {} : setSelectedTask}
         accentColor={P.coral}
@@ -427,11 +443,13 @@ export default function TodayPage() {
         onSelect={handleToggleSelect}
       />
 
-      {/* Working section */}
+      {/* Working section — drop zone for running agents */}
       <TaskSection
         label="AGENTS WORKING"
+        sectionId="working"
         tasks={workingTasks}
         onTaskClick={bulkMode ? () => {} : setSelectedTask}
+        onDropTask={handleDropTask}
         accentColor={P.amber}
         selectable={bulkMode}
         selectedIds={selectedIds}
@@ -441,6 +459,7 @@ export default function TodayPage() {
       {/* To do section */}
       <TaskSection
         label="TO DO"
+        sectionId="todo"
         tasks={todoTasks}
         onTaskClick={bulkMode ? () => {} : setSelectedTask}
         onRunTask={handleRunTask}

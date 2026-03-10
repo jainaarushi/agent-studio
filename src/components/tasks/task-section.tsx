@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { TaskCard } from "./task-card";
 import { P } from "@/lib/palette";
 import type { TaskWithAgent } from "@/lib/types/task";
 
 interface TaskSectionProps {
   label: string;
+  sectionId?: string;
   tasks: TaskWithAgent[];
   onTaskClick: (task: TaskWithAgent) => void;
   onRunTask?: (taskId: string) => void;
+  onDropTask?: (taskId: string, targetSection: string) => void;
   accentColor?: string;
   dot?: boolean;
   selectable?: boolean;
@@ -19,15 +22,42 @@ interface TaskSectionProps {
 }
 
 export function TaskSection({
-  label, tasks, onTaskClick, onRunTask, accentColor, dot,
+  label, sectionId, tasks, onTaskClick, onRunTask, onDropTask, accentColor, dot,
   selectable, selectedIds, onSelect,
   draggable, onReorder,
 }: TaskSectionProps) {
   const color = accentColor || P.textGhost;
+  const [dragOver, setDragOver] = useState(false);
   let draggedId: string | null = null;
 
+  function handleSectionDragOver(e: React.DragEvent) {
+    if (!sectionId || !onDropTask) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOver(true);
+  }
+
+  function handleSectionDragLeave() {
+    setDragOver(false);
+  }
+
+  function handleSectionDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    if (!sectionId || !onDropTask) return;
+    const taskId = e.dataTransfer.getData("text/plain");
+    if (taskId) {
+      onDropTask(taskId, sectionId);
+    }
+  }
+
   return (
-    <div style={{ marginBottom: 28 }}>
+    <div
+      style={{ marginBottom: 28 }}
+      onDragOver={handleSectionDragOver}
+      onDragLeave={handleSectionDragLeave}
+      onDrop={handleSectionDrop}
+    >
       <div style={{
         display: "flex", alignItems: "center", gap: 8, marginBottom: 12, paddingLeft: 2,
       }}>
@@ -75,11 +105,15 @@ export function TaskSection({
         </div>
       ) : (
         <div style={{
-          padding: "10px 14px", borderRadius: 10,
-          border: `1px dashed ${P.border}`,
-          fontSize: 12.5, color: P.textGhost,
+          padding: "14px 16px", borderRadius: 12,
+          border: `2px dashed ${dragOver ? P.indigo : P.border}`,
+          backgroundColor: dragOver ? P.indigo + "06" : "transparent",
+          fontSize: 12.5, color: dragOver ? P.indigo : P.textGhost,
+          fontWeight: dragOver ? 600 : 400,
+          textAlign: "center",
+          transition: "all 0.2s",
         }}>
-          No tasks
+          {dragOver ? "Drop here to run agent" : "No tasks"}
         </div>
       )}
     </div>
