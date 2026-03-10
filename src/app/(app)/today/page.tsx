@@ -200,10 +200,11 @@ export default function TodayPage() {
   }
 
   async function handleCreateTask(title: string, agentIds?: string[]) {
+    const firstAgent = agentIds?.[0] ? agents.find((a) => a.id === agentIds[0]) : null;
     const optimisticTask: TaskWithAgent = {
       id: `temp-${Date.now()}`,
       user_id: "",
-      agent_id: null,
+      agent_id: firstAgent?.id || null,
       title,
       description: null,
       status: "todo",
@@ -221,7 +222,9 @@ export default function TodayPage() {
       section: "today",
       sort_order: 0,
       priority: "normal",
-      agent: null,
+      agent: firstAgent
+        ? { id: firstAgent.id, name: firstAgent.name, icon: firstAgent.icon, color: firstAgent.color, gradient: firstAgent.gradient }
+        : null,
     };
 
     mutate([optimisticTask, ...tasks], false);
@@ -242,7 +245,7 @@ export default function TodayPage() {
       });
     }
 
-    mutate();
+    await mutate();
   }
 
   return (
