@@ -167,6 +167,7 @@ export default function TodayPage() {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "n") {
         e.preventDefault();
+        setPreviewAgent(null);
         setShowCreateModal(true);
       }
     }
@@ -565,7 +566,7 @@ export default function TodayPage() {
       {/* Create task — Canva-style search bar */}
       <div
         className="create-bar"
-        onClick={() => setShowCreateModal(true)}
+        onClick={() => { setPreviewAgent(null); setShowCreateModal(true); }}
         onMouseEnter={(e) => {
           e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.12), 0 4px 20px rgba(0,0,0,0.06)";
         }}

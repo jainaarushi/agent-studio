@@ -136,9 +136,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
 
   useEffect(() => {
     if (open) {
-      if (preSelectedAgentId) {
-        setSelectedAgentIds([preSelectedAgentId]);
-      }
+      setSelectedAgentIds(preSelectedAgentId ? [preSelectedAgentId] : []);
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       setSelectedAgentIds([]);
