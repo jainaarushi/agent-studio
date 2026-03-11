@@ -361,7 +361,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: "100%", margin: "0 auto" }}>
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 48, padding: "0 24px" }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>Meet Your Agents</span>
-            <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8, marginBottom: 12 }}>
+            <h2 style={{ fontSize: "clamp(26px, 5vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8, marginBottom: 12 }}>
               Pick an agent. Describe your task. Ship it.
             </h2>
             <p style={{ fontSize: 17, color: "#666", maxWidth: 520, margin: "0 auto" }}>
@@ -416,7 +416,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 56 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>Features</span>
-            <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8, marginBottom: 12 }}>
+            <h2 style={{ fontSize: "clamp(26px, 5vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8, marginBottom: 12 }}>
               Everything you need to orchestrate AI
             </h2>
             <p style={{ fontSize: 17, color: "#666", maxWidth: 500, margin: "0 auto" }}>
@@ -461,7 +461,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 56 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>How It Works</span>
-            <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8 }}>
+            <h2 style={{ fontSize: "clamp(26px, 5vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", marginTop: 8 }}>
               Three steps. That{"'"}s it.
             </h2>
           </motion.div>

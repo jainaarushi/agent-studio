@@ -227,7 +227,7 @@ export default function AnalyticsPage() {
         <div style={{ fontSize: 15, fontWeight: 700, color: P.text, marginBottom: 16 }}>
           Token Usage
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+        <div className="analytics-grid-4" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
           {[
             { label: "Input Tokens", value: totalTokensIn.toLocaleString(), color: P.indigo },
             { label: "Output Tokens", value: totalTokensOut.toLocaleString(), color: P.coral },

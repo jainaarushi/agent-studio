@@ -16,8 +16,9 @@ function MobileNav({ reviewCount }: { reviewCount: number }) {
       backgroundColor: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
       borderTop: "1px solid rgba(0,0,0,0.06)",
       display: "flex", justifyContent: "space-around", alignItems: "center",
-      padding: "8px 0 env(safe-area-inset-bottom, 8px)",
-      height: 56,
+      padding: "8px 0",
+      paddingBottom: "max(8px, env(safe-area-inset-bottom))",
+      minHeight: 56,
     }}>
       {[
         { href: "/today", icon: "🏠", label: "Today" },
@@ -99,6 +100,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
           .mobile-nav { display: flex !important; }
           .app-gradient { left: 0 !important; }
           .app-content-wrapper { padding: 16px 12px 72px !important; }
+          .agent-scroller-bleed { margin-left: -12px !important; margin-right: -12px !important; }
+          .agent-scroller-inner { padding-left: 12px !important; }
+          .specialist-bleed { margin-left: -12px !important; margin-right: -12px !important; }
+          .specialist-header { padding: 0 12px !important; }
+          .specialist-scroll { padding-left: 12px !important; padding-right: 12px !important; }
+          .header-row { flex-direction: column !important; gap: 8px !important; }
+          .team-badge { display: none !important; }
         }
       `}</style>
       <div className="desktop-sidebar">

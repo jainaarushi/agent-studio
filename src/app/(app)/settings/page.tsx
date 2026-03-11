@@ -195,7 +195,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Provider tabs */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+        <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" as const }}>
           {providers.map((p) => {
             const isActive = activeProvider === p.id;
             const info = p.id === "openai" ? openaiInfo : p.id === "gemini" ? geminiInfo : anthropicInfo;
@@ -337,7 +337,7 @@ export default function SettingsPage() {
           padding: "12px 14px", borderRadius: 12,
           backgroundColor: P.sidebar, border: `1px solid ${P.border}`,
         }}>
-          <div style={{ display: "flex", gap: 16, fontSize: 11, color: P.textTer }}>
+          <div style={{ display: "flex", gap: 12, fontSize: 11, color: P.textTer, flexWrap: "wrap" as const }}>
             <span>🛡️ AES-256-GCM encrypted</span>
             <span>🔐 Decrypted only at execution</span>
             <span>🗑️ Delete anytime</span>

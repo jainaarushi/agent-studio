@@ -299,7 +299,7 @@ export default function TodayPage() {
       <Confetti show={showConfetti} />
 
       {/* Section header + coming soon */}
-      <div style={{
+      <div className="header-row" style={{
         marginBottom: 14, animation: "slideUp 0.5s cubic-bezier(0.16,1,0.3,1)",
         display: "flex", justifyContent: "space-between", alignItems: "flex-start",
       }}>
@@ -329,7 +329,7 @@ export default function TodayPage() {
         </div>
 
         {/* Team collaboration — coming soon */}
-        <div style={{
+        <div className="team-badge" style={{
           padding: "10px 16px", borderRadius: 14,
           background: "linear-gradient(135deg, rgba(99,102,241,0.06), rgba(124,58,237,0.08))",
           border: "1px solid rgba(99,102,241,0.12)",
@@ -368,11 +368,11 @@ export default function TodayPage() {
       </div>
 
       {/* AI Agents — 2-row Canva-style grid with horizontal scroll — full width */}
-      <div style={{ marginBottom: 28, marginLeft: -24, marginRight: -24, marginTop: -6, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
+      <div className="agent-scroller-bleed" style={{ marginBottom: 28, marginLeft: -24, marginRight: -24, marginTop: -6, animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both", position: "relative" }}>
         <div style={{ position: "relative" }}>
           <div
             ref={scrollRef}
-            className="agent-scroll"
+            className="agent-scroll agent-scroller-inner"
             onScroll={() => {
               const el = scrollRef.current;
               if (el) setShowScrollBtn(el.scrollLeft < el.scrollWidth - el.clientWidth - 20);
@@ -513,11 +513,11 @@ export default function TodayPage() {
       </div>
 
       {/* ─── Specialist Divisions — Coming Soon (single horizontal scroll) ─── */}
-      <div style={{
+      <div className="specialist-bleed" style={{
         marginBottom: 20, marginTop: -10, marginLeft: -24, marginRight: -24,
         animation: "fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.15s both",
       }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 24px" }}>
+        <div className="specialist-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 15, fontWeight: 800, color: P.text, letterSpacing: "-0.02em" }}>
               Specialist Divisions
@@ -537,7 +537,7 @@ export default function TodayPage() {
           </span>
         </div>
 
-        <div className="spec-scroll" style={{
+        <div className="spec-scroll specialist-scroll" style={{
           display: "flex", overflowX: "auto", gap: 10, paddingLeft: 24, paddingRight: 24, paddingBottom: 6,
           scrollbarWidth: "none", msOverflowStyle: "none",
         }}>

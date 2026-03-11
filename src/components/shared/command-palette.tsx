@@ -164,7 +164,7 @@ export function CommandPalette({ tasks, agents }: CommandPaletteProps) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 520,
+          width: "min(520px, 92vw)",
           maxHeight: 420,
           backgroundColor: P.card,
           borderRadius: 16,

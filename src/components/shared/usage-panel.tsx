@@ -146,7 +146,7 @@ export function UsagePanel({ tasks }: UsagePanelProps) {
         }}>
           {/* Token breakdown */}
           <div style={{
-            display: "flex", gap: 16, marginBottom: 16, fontSize: 12,
+            display: "flex", gap: 12, marginBottom: 16, fontSize: 12, flexWrap: "wrap" as const,
           }}>
             <div style={{
               padding: "8px 14px", borderRadius: 8, backgroundColor: "#F5F5F3",

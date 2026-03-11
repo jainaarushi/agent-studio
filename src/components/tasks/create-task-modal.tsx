@@ -371,6 +371,17 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
 
         {/* Right content */}
         <div style={{ flex: 1, overflowY: "auto", padding: "28px 30px 30px" }}>
+          {/* Mobile heading (visible when sidebar hidden) */}
+          <style>{`
+            .create-mobile-heading { display: none; }
+            @media (max-width: 768px) { .create-mobile-heading { display: block !important; } }
+          `}</style>
+          <h2 className="create-mobile-heading" style={{
+            fontSize: 20, fontWeight: 800, color: P.text,
+            marginBottom: 16, letterSpacing: "-0.03em", display: "none",
+          }}>
+            Create a task
+          </h2>
           {/* Search input */}
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
