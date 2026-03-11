@@ -6,7 +6,7 @@ import { encryptApiKey, decryptApiKey, maskApiKey } from "@/lib/ai/encrypt";
 
 export async function GET() {
   const user = await getAuthUser();
-  if (user.isDemo) return NextResponse.json({ openai: null, gemini: null, anthropic: null, provider: "openai" });
+  if (user.isDemo) return NextResponse.json({ openai: null, gemini: null, anthropic: null, wispr: null, provider: "openai" });
 
   if (!isSupabaseEnabled()) {
     return NextResponse.json({ openai: null, gemini: null, anthropic: null, provider: "openai" });
@@ -17,7 +17,7 @@ export async function GET() {
 
   const { data } = await supabase
     .from("users")
-    .select("anthropic_api_key, gemini_api_key, openai_api_key, ai_provider")
+    .select("anthropic_api_key, gemini_api_key, openai_api_key, wispr_api_key, ai_provider")
     .eq("id", user.id)
     .single();
 
@@ -32,6 +32,7 @@ export async function GET() {
     openai: getKeyInfo(data?.openai_api_key),
     gemini: getKeyInfo(data?.gemini_api_key),
     anthropic: getKeyInfo(data?.anthropic_api_key),
+    wispr: getKeyInfo(data?.wispr_api_key),
     provider: data?.ai_provider || "openai",
     encryption: "AES-256-GCM",
   });
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "api_key is required" }, { status: 400 });
   }
 
-  if (!provider || !["openai", "gemini", "anthropic"].includes(provider)) {
+  if (!provider || !["openai", "gemini", "anthropic", "wispr"].includes(provider)) {
     return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
   }
 
@@ -72,13 +73,18 @@ export async function POST(request: NextRequest) {
     openai: "openai_api_key",
     gemini: "gemini_api_key",
     anthropic: "anthropic_api_key",
+    wispr: "wispr_api_key",
   };
 
   const encrypted = encryptApiKey(api_key);
 
+  const updateData: Record<string, string> = { [columnMap[provider]]: encrypted };
+  // Don't change ai_provider for wispr (it's a separate service)
+  if (provider !== "wispr") updateData.ai_provider = provider;
+
   const { error } = await supabase
     .from("users")
-    .update({ [columnMap[provider]]: encrypted, ai_provider: provider })
+    .update(updateData)
     .eq("id", user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -105,15 +111,16 @@ export async function DELETE(request: NextRequest) {
   const supabase = await createClient();
   if (!supabase) return NextResponse.json({ error: "Supabase not available" }, { status: 500 });
 
-  const columnMap: Record<string, string> = {
+  const delColumnMap: Record<string, string> = {
     openai: "openai_api_key",
     gemini: "gemini_api_key",
     anthropic: "anthropic_api_key",
+    wispr: "wispr_api_key",
   };
 
   const { error } = await supabase
     .from("users")
-    .update({ [columnMap[provider] || "openai_api_key"]: null })
+    .update({ [delColumnMap[provider] || "openai_api_key"]: null })
     .eq("id", user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -29,6 +29,10 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const [uploadedFile, setUploadedFile] = useState<{ filename: string; mimeType: string; textContent: string | null; base64Image: string | null } | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const task = fullTask || initialTask;
 
@@ -74,6 +78,90 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        // Convert to base64 WAV via AudioContext
+        setTranscribing(true);
+        try {
+          const arrayBuffer = await blob.arrayBuffer();
+          const audioCtx = new AudioContext({ sampleRate: 16000 });
+          const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+          const pcm = decoded.getChannelData(0);
+
+          // Convert float32 PCM to int16 PCM
+          const int16 = new Int16Array(pcm.length);
+          for (let i = 0; i < pcm.length; i++) {
+            const s = Math.max(-1, Math.min(1, pcm[i]));
+            int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+          }
+
+          // Build WAV file
+          const wavBuffer = new ArrayBuffer(44 + int16.byteLength);
+          const view = new DataView(wavBuffer);
+          const writeStr = (off: number, str: string) => { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)); };
+          writeStr(0, "RIFF");
+          view.setUint32(4, 36 + int16.byteLength, true);
+          writeStr(8, "WAVE");
+          writeStr(12, "fmt ");
+          view.setUint32(16, 16, true);
+          view.setUint16(20, 1, true); // PCM
+          view.setUint16(22, 1, true); // mono
+          view.setUint32(24, 16000, true); // sample rate
+          view.setUint32(28, 32000, true); // byte rate
+          view.setUint16(32, 2, true); // block align
+          view.setUint16(34, 16, true); // bits per sample
+          writeStr(36, "data");
+          view.setUint32(40, int16.byteLength, true);
+          new Int16Array(wavBuffer, 44).set(int16);
+
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(wavBuffer)));
+          audioCtx.close();
+
+          // Send to our speech API
+          const res = await fetch("/api/speech", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ audio: base64 }),
+          });
+          const data = await res.json();
+          if (res.ok && data.text) {
+            setUserInput((prev) => (prev ? prev + " " : "") + data.text);
+          } else {
+            alert(data.error || "Voice transcription failed");
+          }
+        } catch (err) {
+          alert("Voice processing failed. Please try again.");
+          console.error("Voice error:", err);
+        } finally {
+          setTranscribing(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setRecording(true);
+    } catch {
+      alert("Microphone access denied. Please allow microphone access.");
+    }
+  }
+
+  function stopRecording() {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
   }
 
   async function handleRun() {
@@ -573,8 +661,42 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                   </svg>
                   {uploading ? "Uploading..." : "Attach file"}
                 </button>
+
+                {/* Voice input button */}
+                <button
+                  onClick={recording ? stopRecording : startRecording}
+                  disabled={transcribing}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "7px 14px", borderRadius: 9,
+                    border: `1.5px solid ${recording ? "#EF4444" : P.border}`,
+                    backgroundColor: recording ? "#FEF2F2" : P.card,
+                    color: recording ? "#EF4444" : P.textSec,
+                    fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "inherit", transition: "all 0.15s",
+                    opacity: transcribing ? 0.5 : 1,
+                    animation: recording ? "pulseGlow 1.5s ease-in-out infinite" : "none",
+                  }}
+                  onMouseEnter={(e) => { if (!recording) { e.currentTarget.style.borderColor = "#8B5CF6"; e.currentTarget.style.backgroundColor = P.sidebar; } }}
+                  onMouseLeave={(e) => { if (!recording) { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.backgroundColor = P.card; } }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {recording ? (
+                      <rect x="6" y="6" width="12" height="12" rx="2" />
+                    ) : (
+                      <>
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="23" />
+                        <line x1="8" y1="23" x2="16" y2="23" />
+                      </>
+                    )}
+                  </svg>
+                  {transcribing ? "Transcribing..." : recording ? "Stop" : "Voice"}
+                </button>
+
                 <span style={{ fontSize: 10.5, color: P.textTer }}>
-                  PDF, DOCX, XLSX, images — max 10MB
+                  {recording ? "Recording... click Stop when done" : "File or voice input"}
                 </span>
               </div>
 

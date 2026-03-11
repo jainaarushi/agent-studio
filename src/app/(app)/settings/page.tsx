@@ -25,6 +25,10 @@ export default function SettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showKey, setShowKey] = useState(false);
+  const [wisprKey, setWisprKey] = useState("");
+  const [wisprInfo, setWisprInfo] = useState<KeyInfo | null>(null);
+  const [wisprSaving, setWisprSaving] = useState(false);
+  const [wisprMessage, setWisprMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/user/api-key")
@@ -33,6 +37,7 @@ export default function SettingsPage() {
         setOpenaiInfo(data.openai);
         setAnthropicInfo(data.anthropic);
         setGeminiInfo(data.gemini);
+        if (data.wispr) setWisprInfo(data.wispr);
         if (data.provider) setActiveProvider(data.provider);
       })
       .catch(() => {});
@@ -87,6 +92,31 @@ export default function SettingsPage() {
       setMessage({ type: "error", text: "Failed to remove key" });
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleSaveWispr() {
+    if (!wisprKey.trim()) return;
+    setWisprSaving(true);
+    setWisprMessage(null);
+    try {
+      const res = await fetch("/api/user/api-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ api_key: wisprKey.trim(), provider: "wispr" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setWisprInfo({ hasKey: true, maskedKey: data.maskedKey });
+        setWisprKey("");
+        setWisprMessage({ type: "success", text: "Wispr key saved and encrypted" });
+      } else {
+        setWisprMessage({ type: "error", text: data.error || "Failed to save" });
+      }
+    } catch {
+      setWisprMessage({ type: "error", text: "Network error" });
+    } finally {
+      setWisprSaving(false);
     }
   }
 
@@ -327,6 +357,110 @@ export default function SettingsPage() {
             {message.type === "success" ? "✓ " : "✕ "}{message.text}
           </div>
         )}
+      </div>
+
+      {/* Voice Input — Wispr */}
+      <div style={{
+        padding: "22px 24px", backgroundColor: P.card, borderRadius: 16,
+        border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+        animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.08s both",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+          <span style={{ fontSize: 18 }}>🎙️</span>
+          <div style={{ fontSize: 16, fontWeight: 700, color: P.text }}>Voice Input</div>
+          <span style={{
+            fontSize: 9, fontWeight: 700, color: "#fff",
+            backgroundColor: "#8B5CF6", padding: "2px 6px", borderRadius: 4,
+          }}>
+            Wispr Flow
+          </span>
+        </div>
+        <p style={{ fontSize: 12.5, color: P.textTer, marginBottom: 14, lineHeight: 1.5 }}>
+          Add your Wispr Flow API key to enable voice-to-text input. Speak instead of typing when creating tasks.
+        </p>
+
+        {wisprInfo?.hasKey ? (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "12px 14px", borderRadius: 12,
+            backgroundColor: "#F5F3FF", border: "1.5px solid #DDD6FE",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#8B5CF6", boxShadow: "0 0 6px rgba(139,92,246,0.5)" }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#5B21B6" }}>Wispr key active</span>
+              <span style={{ fontSize: 10.5, color: "#7C3AED", fontFamily: "'JetBrains Mono', var(--font-mono), monospace" }}>
+                {wisprInfo.maskedKey}
+              </span>
+            </div>
+            <button
+              onClick={async () => {
+                setWisprSaving(true);
+                try {
+                  const res = await fetch("/api/user/api-key?provider=wispr", { method: "DELETE" });
+                  if (res.ok) { setWisprInfo(null); setWisprMessage({ type: "success", text: "Wispr key removed" }); }
+                } catch { setWisprMessage({ type: "error", text: "Failed to remove" }); }
+                finally { setWisprSaving(false); }
+              }}
+              style={{
+                padding: "5px 12px", borderRadius: 7,
+                border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2",
+                color: "#DC2626", fontSize: 11, fontWeight: 600,
+                cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              type="password"
+              value={wisprKey}
+              onChange={(e) => setWisprKey(e.target.value)}
+              placeholder="Wispr API key..."
+              style={{
+                flex: 1, padding: "11px 14px", borderRadius: 10,
+                border: `1.5px solid ${P.border}`, fontSize: 13, color: P.text,
+                fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                outline: "none", backgroundColor: P.card,
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "#8B5CF660"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
+              onKeyDown={(e) => { if (e.key === "Enter" && wisprKey.trim()) handleSaveWispr(); }}
+            />
+            <button
+              onClick={handleSaveWispr}
+              disabled={wisprSaving || !wisprKey.trim()}
+              style={{
+                padding: "11px 18px", borderRadius: 10, border: "none",
+                background: wisprKey.trim() ? "linear-gradient(135deg, #8B5CF6, #7C3AED)" : P.border,
+                color: wisprKey.trim() ? "#fff" : P.textTer,
+                fontSize: 13, fontWeight: 700, cursor: wisprSaving || !wisprKey.trim() ? "not-allowed" : "pointer",
+                fontFamily: "inherit", whiteSpace: "nowrap",
+              }}
+            >
+              {wisprSaving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        )}
+
+        {wisprMessage && (
+          <div style={{
+            marginTop: 10, padding: "8px 12px", borderRadius: 8,
+            backgroundColor: wisprMessage.type === "success" ? "#ECFDF5" : "#FEF2F2",
+            border: `1px solid ${wisprMessage.type === "success" ? "#A7F3D0" : "#FECACA"}`,
+            fontSize: 12, color: wisprMessage.type === "success" ? "#065F46" : "#DC2626",
+          }}>
+            {wisprMessage.type === "success" ? "✓ " : "✕ "}{wisprMessage.text}
+          </div>
+        )}
+
+        <div style={{ marginTop: 12, fontSize: 11, color: P.textTer }}>
+          <a href="https://platform.wisprflow.ai/" target="_blank" rel="noopener noreferrer"
+            style={{ color: "#8B5CF6", fontWeight: 600, textDecoration: "none" }}>
+            Get key at platform.wisprflow.ai →
+          </a>
+        </div>
       </div>
 
       {/* Status */}
