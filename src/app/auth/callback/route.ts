@@ -4,7 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/today";
+  let next = searchParams.get("next") ?? "/today";
+  // Prevent open redirect — only allow relative paths
+  if (!next.startsWith("/") || next.startsWith("//") || next.includes("://")) {
+    next = "/today";
+  }
 
   const supabase = await createClient();
 

@@ -87,7 +87,10 @@ export async function POST(request: NextRequest) {
     .update(updateData)
     .eq("id", user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("API key operation error:", error.message);
+    return NextResponse.json({ error: "Operation failed. Please try again." }, { status: 500 });
+  }
 
   return NextResponse.json({
     success: true,
@@ -123,6 +126,9 @@ export async function DELETE(request: NextRequest) {
     .update({ [delColumnMap[provider] || "openai_api_key"]: null })
     .eq("id", user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("API key operation error:", error.message);
+    return NextResponse.json({ error: "Operation failed. Please try again." }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }

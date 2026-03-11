@@ -19,7 +19,7 @@ export async function listAgents(userId: string): Promise<Agent[]> {
   const { data, error } = await supabase
     .from("agents")
     .select("*")
-    .or(`user_id.eq.${userId},is_preset.eq.true`);
+    .or(`user_id.eq.${userId.replace(/[^a-f0-9-]/gi, "")},is_preset.eq.true`);
 
   if (error) throw new Error(error.message);
   return (data as Agent[]) || [];
@@ -40,7 +40,7 @@ export async function getAgentById(
     .from("agents")
     .select("*")
     .eq("id", agentId)
-    .or(`user_id.eq.${userId},is_preset.eq.true`)
+    .or(`user_id.eq.${userId.replace(/[^a-f0-9-]/gi, "")},is_preset.eq.true`)
     .single();
 
   if (error) return null;

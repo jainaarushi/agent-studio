@@ -43,6 +43,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "audio (base64) is required" }, { status: 400 });
     }
 
+    // Size limit: ~7.5MB base64 ≈ ~5.6MB raw audio
+    if (audio.length > 10_000_000) {
+      return NextResponse.json({ error: "Audio too large. Maximum recording is about 6 minutes." }, { status: 413 });
+    }
+
     // Call Wispr Flow REST API
     const wisprRes = await fetch("https://platform-api.wisprflow.ai/api/v1/dash/api", {
       method: "POST",
@@ -63,8 +68,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Invalid Wispr API key. Check Settings." }, { status: 401 });
       }
       return NextResponse.json({
-        error: `Wispr API error (${wisprRes.status}): ${errText}`,
-      }, { status: wisprRes.status });
+        error: "Voice transcription failed. Please try again.",
+      }, { status: 502 });
     }
 
     const result = await wisprRes.json();
@@ -76,7 +81,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("Speech API error:", err);
     return NextResponse.json({
-      error: `Speech processing failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+      error: "Speech processing failed. Please try again.",
     }, { status: 500 });
   }
 }

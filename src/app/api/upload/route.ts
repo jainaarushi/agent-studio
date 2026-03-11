@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("Upload error:", err);
     return NextResponse.json({
-      error: `Upload failed: ${err instanceof Error ? err.message : "Unknown error"}. Please try again.`,
+      error: "Upload failed. Please try again.",
     }, { status: 500 });
   }
 }
