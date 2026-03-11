@@ -233,14 +233,14 @@ export default function TodayPage() {
     }
   }
 
-  async function handleCreateTask(title: string, agentIds?: string[]) {
+  async function handleCreateTask(title: string, agentIds?: string[], fileContent?: string) {
     const firstAgent = agentIds?.[0] ? agents.find((a) => a.id === agentIds[0]) : null;
     const optimisticTask: TaskWithAgent = {
       id: `temp-${Date.now()}`,
       user_id: "",
       agent_id: firstAgent?.id || null,
       title,
-      description: null,
+      description: fileContent || null,
       status: "todo",
       progress: 0,
       current_step: null,
@@ -269,14 +269,26 @@ export default function TodayPage() {
       body: JSON.stringify({ title, section: "today" }),
     });
 
-    // If agents were selected, assign the first one (don't auto-run)
-    if (agentIds && agentIds.length > 0 && res.ok) {
+    if (res.ok) {
       const task = await res.json();
-      await fetch(`/api/tasks/${task.id}/assign`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agent_id: agentIds[0] }),
-      });
+
+      // Save file content as description
+      if (fileContent) {
+        await fetch(`/api/tasks/${task.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: fileContent }),
+        });
+      }
+
+      // If agents were selected, assign the first one (don't auto-run)
+      if (agentIds && agentIds.length > 0) {
+        await fetch(`/api/tasks/${task.id}/assign`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ agent_id: agentIds[0] }),
+        });
+      }
     }
 
     await mutate();

@@ -9,7 +9,7 @@ import type { Agent } from "@/lib/types/agent";
 interface CreateTaskModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (title: string, agentIds?: string[]) => void;
+  onSubmit: (title: string, agentIds?: string[], fileContent?: string) => void;
   agents: Agent[];
   preSelectedAgentId?: string;
 }
@@ -252,13 +252,12 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
   function stopRecording() { mediaRecorderRef.current?.stop(); setRecording(false); }
 
   function handleSubmit(title?: string) {
-    let text = (title || value).trim();
+    const text = (title || value).trim();
     if (!text) return;
-    // Append file content to task title as description context
-    if (uploadedFile?.textContent) {
-      text = text + "\n\n[Attached: " + uploadedFile.filename + "]\n" + uploadedFile.textContent;
-    }
-    onSubmit(text, selectedAgentIds.length > 0 ? selectedAgentIds : undefined);
+    const fileContent = uploadedFile?.textContent
+      ? `[Attached: ${uploadedFile.filename}]\n${uploadedFile.textContent}`
+      : undefined;
+    onSubmit(text, selectedAgentIds.length > 0 ? selectedAgentIds : undefined, fileContent);
     setValue("");
     setSelectedAgentIds([]);
     setUploadedFile(null);
