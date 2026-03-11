@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { parseFile, isSupported, getSupportedExtensions } from "@/lib/upload/parse-file";
+
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,30 +12,74 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const taskId = formData.get("taskId") as string | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Size check
-    if (file.size > 10 * 1024 * 1024) {
+    // Size check — clear message for >10MB
+    if (file.size > MAX_SIZE) {
       return NextResponse.json({
-        error: `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is 10MB.`,
-      }, { status: 400 });
+        error: `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed size is 10MB. Please compress or reduce the file size and try again.`,
+      }, { status: 413 });
     }
 
-    // Type check (also try filename extension as fallback)
+    // Type check
     if (!isSupported(file.type, file.name)) {
       return NextResponse.json({
-        error: `Unsupported file type: ${file.type || "unknown"}. Supported: ${getSupportedExtensions().join(", ")}`,
-      }, { status: 400 });
+        error: `This file type is not supported (${file.type || "unknown"}). Supported formats: ${getSupportedExtensions().join(", ")}`,
+      }, { status: 415 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const parsed = await parseFile(buffer, file.name, file.type);
 
-    if (parsed.error) {
-      return NextResponse.json({ error: parsed.error, parsed }, { status: 422 });
+    if (parsed.error && !parsed.textContent && !parsed.base64Image) {
+      return NextResponse.json({ error: parsed.error }, { status: 422 });
+    }
+
+    // Store in Supabase storage if available and user is authenticated
+    let storagePath: string | null = null;
+    if (isSupabaseEnabled() && !user.isDemo) {
+      try {
+        const supabase = await createClient();
+        if (supabase) {
+          const timestamp = Date.now();
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+          storagePath = `${user.id}/${timestamp}_${safeName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("uploads")
+            .upload(storagePath, buffer, {
+              contentType: file.type || "application/octet-stream",
+              upsert: false,
+            });
+
+          if (uploadError) {
+            console.error("Supabase storage error:", uploadError);
+            // Don't fail — continue with in-memory parsing
+            storagePath = null;
+          }
+
+          // Save file metadata to task_files table
+          if (storagePath && taskId) {
+            await supabase.from("task_files").insert({
+              task_id: taskId,
+              user_id: user.id,
+              filename: file.name,
+              mime_type: file.type || "application/octet-stream",
+              file_type: parsed.fileType,
+              size_bytes: file.size,
+              storage_path: storagePath,
+              text_content: parsed.textContent?.substring(0, 50000) || null,
+            });
+          }
+        }
+      } catch (storageErr) {
+        console.error("Storage save error:", storageErr);
+        // Continue — file was still parsed successfully
+      }
     }
 
     return NextResponse.json({
@@ -41,15 +89,16 @@ export async function POST(request: NextRequest) {
         mimeType: parsed.mimeType,
         fileType: parsed.fileType,
         textContent: parsed.textContent,
-        // Don't send base64 in response (too large) — it's stored server-side
         hasImage: !!parsed.base64Image,
         sizeBytes: parsed.sizeBytes,
+        storagePath,
       },
+      warning: parsed.error || undefined,
     });
   } catch (err) {
     console.error("Upload error:", err);
     return NextResponse.json({
-      error: `Upload failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+      error: `Upload failed: ${err instanceof Error ? err.message : "Unknown error"}. Please try again.`,
     }, { status: 500 });
   }
 }
