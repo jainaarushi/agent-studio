@@ -3,6 +3,7 @@ import { getAuthUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { encryptApiKey, decryptApiKey, maskApiKey } from "@/lib/ai/encrypt";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -41,6 +42,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
   if (user.isDemo) return NextResponse.json({ error: "Sign up to save your API key", login: true }, { status: 401 });
+
+  // Rate limit: 5 key saves per minute
+  const rl = rateLimit(`apikey:${user.id}`, { maxRequests: 5, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many attempts. Please wait." }, { status: 429 });
+  }
 
   const { api_key, provider } = await request.json();
 

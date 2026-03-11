@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTask, getAgent, updateTask as updateMockTask, mockSteps } from "@/lib/mock-data";
 import { getAuthUser } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODELS } from "@/lib/ai/client";
 import { getUserAIConfig } from "@/lib/ai/get-user-key";
 import { calculateCost } from "@/lib/ai/cost";
@@ -25,6 +26,12 @@ export async function POST(
   const { id } = await params;
   const user = await getAuthUser();
   if (user.isDemo) return NextResponse.json({ error: "Sign in to run AI agents", login: true }, { status: 401 });
+
+  // Rate limit: 10 runs per minute per user
+  const rl = rateLimit(`run:${user.id}`, { maxRequests: 10, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
+  }
 
   // Get task and agent
   let taskTitle: string;

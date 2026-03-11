@@ -3,12 +3,19 @@ import { getAuthUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { parseFile, isSupported, getSupportedExtensions } from "@/lib/upload/parse-file";
+import { rateLimit } from "@/lib/rate-limit";
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthUser();
+
+    // Rate limit: 20 uploads per minute
+    const rl = rateLimit(`upload:${user.id}`, { maxRequests: 20, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Too many uploads. Please wait." }, { status: 429 });
+    }
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
