@@ -161,7 +161,12 @@ export async function parseFile(buffer: Buffer, filename: string, mimeType: stri
       }
 
       case "image": {
-        result.base64Image = buffer.toString("base64");
+        // For images under 4MB, encode as base64 for LLM vision
+        // For larger images, just note the attachment
+        if (buffer.length <= 4 * 1024 * 1024) {
+          result.base64Image = buffer.toString("base64");
+        }
+        result.textContent = `[Image uploaded: ${filename}, ${(buffer.length / 1024).toFixed(0)}KB, ${mimeType}]`;
         break;
       }
     }

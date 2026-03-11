@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
         mimeType: parsed.mimeType,
         fileType: parsed.fileType,
         textContent: parsed.textContent,
-        base64Image: parsed.base64Image,
+        // Don't send base64 in response (too large) — it's stored server-side
+        hasImage: !!parsed.base64Image,
         sizeBytes: parsed.sizeBytes,
       },
     });
