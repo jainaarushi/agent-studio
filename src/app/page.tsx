@@ -2,9 +2,8 @@
 
 import { motion } from "framer-motion";
 import {
-  Bot, Sparkles, ArrowRight, ChevronRight, Zap, Brain,
-  Layers, BarChart3, MessageSquare, Palette, Shield, Clock,
-  Star, Flame, Music, Heart, Briefcase, Code, Dumbbell, Plane,
+  Sparkles, ArrowRight, ChevronRight, Zap, Brain,
+  Layers, BarChart3, MessageSquare, Shield,
 } from "lucide-react";
 
 const POPULAR_AGENTS = [

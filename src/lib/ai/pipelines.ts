@@ -126,6 +126,48 @@ export const DEFAULT_PIPELINE: PipelineStep[] = [
   { description: "Reviewing and finalizing", duration: 800 },
 ];
 
+// Map seed slugs to pipeline keys
+const SLUG_TO_PIPELINE: Record<string, string> = {
+  "deep-research": "scout",
+  "academic-researcher": "scout",
+  "fact-checker": "scout",
+  "startup-trends": "scout",
+  "web-intel": "sleuth",
+  "content-creator": "quill",
+  "technical-writer": "quill",
+  "editor": "quill",
+  "email-drafter": "quill",
+  "journalist": "quill",
+  "linkedin-post": "quill",
+  "cover-letter": "quill",
+  "blog-to-podcast": "caster",
+  "data-analyst": "metric",
+  "visualization-expert": "metric",
+  "general-assistant": "atlas",
+  "decision-helper": "atlas",
+  "meeting-notes": "atlas",
+  "travel-planner": "voyager",
+  "investment-analyst": "pulse",
+  "personal-finance": "pulse",
+  "system-architect": "architect",
+  "fullstack-developer": "architect",
+  "python-expert": "architect",
+  "code-reviewer": "architect",
+  "debugger": "architect",
+  "sales-rep": "catalyst",
+  "product-launch": "catalyst",
+  "customer-support": "catalyst",
+  "fitness-coach": "vitalis",
+  "recipe-planner": "vitalis",
+  "mental-wellbeing": "vitalis",
+  "strategy-advisor": "strategist",
+  "project-planner": "strategist",
+  "sprint-planner": "strategist",
+};
+
 export function getPipeline(agentSlug: string): PipelineStep[] {
-  return AGENT_PIPELINES[agentSlug] || DEFAULT_PIPELINE;
+  // Direct match first, then mapped slug, then default
+  return AGENT_PIPELINES[agentSlug]
+    || AGENT_PIPELINES[SLUG_TO_PIPELINE[agentSlug]]
+    || DEFAULT_PIPELINE;
 }

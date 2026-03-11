@@ -222,44 +222,6 @@ async function runPipeline(
   }
 }
 
-// ── Demo Pipeline (no API key) ──────────────────────────────
-
-async function runDemoPipeline(
-  userId: string,
-  taskId: string,
-  agentName: string,
-  pipeline: { description: string; duration: number; isCore?: boolean }[],
-  steps: TaskStep[],
-) {
-  for (let i = 0; i < pipeline.length; i++) {
-    const step = pipeline[i];
-    const progress = Math.round(((i + 0.5) / pipeline.length) * 100);
-
-    steps[i].status = "working";
-    steps[i].started_at = new Date().toISOString();
-    await persistTaskUpdate(userId, taskId, {
-      progress: Math.min(progress, 95),
-      current_step: step.description,
-    });
-
-    // In demo mode, core step also just waits
-    await delay(step.isCore ? 2000 : step.duration);
-
-    steps[i].status = "done";
-    steps[i].completed_at = new Date().toISOString();
-  }
-
-  await persistTaskUpdate(userId, taskId, {
-    status: "review",
-    progress: 100,
-    output: `# Demo Mode\n\nThis is a simulated response. To get real AI-powered results:\n\n1. Go to **Settings**\n2. Add your API key (OpenAI, Gemini, or Anthropic)\n3. Run this task again\n\n${agentName} will generate real output for your task.\n\n> Get a free key at [platform.openai.com](https://platform.openai.com/api-keys)`,
-    cost_usd: 0,
-    tokens_in: 0,
-    tokens_out: 0,
-    duration_seconds: Math.round(pipeline.reduce((s, p) => s + (p.isCore ? 2000 : p.duration), 0) / 1000),
-    current_step: "Complete — add API key in Settings for real output",
-  });
-}
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

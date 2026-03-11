@@ -3,8 +3,11 @@ import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 // AES-256-GCM encryption for user API keys
 // The encryption key is derived from SUPABASE_SERVICE_ROLE_KEY or a dedicated secret
 function getEncryptionKey(): Buffer {
-  const secret = process.env.ENCRYPTION_SECRET || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-  // Create a 32-byte key from the secret using a simple hash
+  // Use dedicated secret, then service role key (server-only), NEVER the public anon key
+  const secret = process.env.ENCRYPTION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!secret) {
+    throw new Error("ENCRYPTION_SECRET or SUPABASE_SERVICE_ROLE_KEY must be set to encrypt API keys");
+  }
   const crypto = require("crypto");
   return crypto.createHash("sha256").update(secret).digest();
 }

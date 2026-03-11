@@ -172,88 +172,104 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
 
   async function handleRun() {
     setLoading(true);
-    // Build description from user input + uploaded file
-    let description = userInput.trim();
-    if (uploadedFile?.textContent) {
-      description = (description ? description + "\n\n" : "") +
-        `--- Uploaded File: ${uploadedFile.filename} ---\n${uploadedFile.textContent}`;
-    }
-    if (description) {
-      await fetch(`/api/tasks/${task!.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description }),
-      });
-    }
-    const res = await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
-    if (res.status === 401) {
+    try {
+      let description = userInput.trim();
+      if (uploadedFile?.textContent) {
+        description = (description ? description + "\n\n" : "") +
+          `--- Uploaded File: ${uploadedFile.filename} ---\n${uploadedFile.textContent}`;
+      }
+      if (description) {
+        await fetch(`/api/tasks/${task!.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description }),
+        });
+      }
+      const res = await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
+      if (res.status === 401) {
+        setLoginPrompt(true);
+        setTimeout(() => { window.location.href = "/login"; }, 2500);
+        return;
+      }
+      if (res.status === 402) {
+        setLoginPrompt(true);
+        setLoginPromptMsg("Add an API key to run agents");
+        setTimeout(() => { window.location.href = "/settings"; }, 2500);
+        return;
+      }
+      mutateTask();
+      onUpdate();
+    } catch (err) {
+      console.error("Run failed:", err);
+      alert("Failed to run agent. Please try again.");
+    } finally {
       setLoading(false);
-      setLoginPrompt(true);
-      setTimeout(() => { window.location.href = "/login"; }, 2500);
-      return;
     }
-    if (res.status === 402) {
-      setLoading(false);
-      setLoginPrompt(true);
-      setLoginPromptMsg("Add an API key to run agents");
-      setTimeout(() => { window.location.href = "/settings"; }, 2500);
-      return;
-    }
-    mutateTask();
-    onUpdate();
-    setLoading(false);
   }
 
   async function handleAssign(agentId: string) {
     setLoading(true);
-    await fetch(`/api/tasks/${task!.id}/assign`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ agent_id: agentId }),
-    });
-    // Don't auto-run — just assign, let user click Run
-    mutateTask();
-    onUpdate();
-    setLoading(false);
+    try {
+      await fetch(`/api/tasks/${task!.id}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agent_id: agentId }),
+      });
+      mutateTask();
+      onUpdate();
+    } catch (err) {
+      console.error("Assign failed:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleApprove() {
     setLoading(true);
-    await fetch(`/api/tasks/${task!.id}/approve`, { method: "POST" });
-    mutateTask();
-    onUpdate();
-    setLoading(false);
-    onClose();
-    onConfetti?.();
+    try {
+      await fetch(`/api/tasks/${task!.id}/approve`, { method: "POST" });
+      mutateTask();
+      onUpdate();
+      onClose();
+      onConfetti?.();
+    } catch (err) {
+      console.error("Approve failed:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleRevise() {
     const note = feedback.trim() || "Please improve the output";
     setLoading(true);
-    await fetch(`/api/tasks/${task!.id}/revise`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ note }),
-    });
-    const runRes = await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
-    if (runRes.status === 401) {
+    try {
+      await fetch(`/api/tasks/${task!.id}/revise`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note }),
+      });
+      const runRes = await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
+      if (runRes.status === 401) {
+        setLoginPrompt(true);
+        setTimeout(() => { window.location.href = "/login"; }, 2500);
+        return;
+      }
+      if (runRes.status === 402) {
+        setLoginPrompt(true);
+        setLoginPromptMsg("Add an API key to run agents");
+        setTimeout(() => { window.location.href = "/settings"; }, 2500);
+        return;
+      }
+      setFeedback("");
+      setShowFeedback(false);
+      mutateTask();
+      onUpdate();
+    } catch (err) {
+      console.error("Revise failed:", err);
+      alert("Failed to revise. Please try again.");
+    } finally {
       setLoading(false);
-      setLoginPrompt(true);
-      setTimeout(() => { window.location.href = "/login"; }, 2500);
-      return;
     }
-    if (runRes.status === 402) {
-      setLoading(false);
-      setLoginPrompt(true);
-      setLoginPromptMsg("Add an API key to run agents");
-      setTimeout(() => { window.location.href = "/settings"; }, 2500);
-      return;
-    }
-    setFeedback("");
-    setShowFeedback(false);
-    mutateTask();
-    onUpdate();
-    setLoading(false);
   }
 
   // Simple markdown renderer

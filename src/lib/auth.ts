@@ -16,8 +16,3 @@ export async function getAuthUser(): Promise<{ id: string; email: string; isDemo
   return { id: user.id, email: user.email || "", isDemo: false };
 }
 
-export async function requireAuth(): Promise<{ id: string; email: string } | null> {
-  const user = await getAuthUser();
-  if (user.isDemo) return null;
-  return user;
-}

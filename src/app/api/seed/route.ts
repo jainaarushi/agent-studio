@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { PRESET_AGENTS } from "@/seed/agents";
@@ -9,9 +9,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Demo mode — agents already loaded in memory" });
   }
 
-  const user = await requireAuth();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getAuthUser();
+  if (user.isDemo) {
+    return NextResponse.json({ error: "Sign in to seed agents" }, { status: 401 });
   }
 
   const supabase = await createClient();
