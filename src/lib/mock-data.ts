@@ -2,27 +2,16 @@ import { PRESET_AGENTS } from "@/seed/agents";
 import type { Agent } from "@/lib/types/agent";
 import type { TaskWithAgent, TaskStep } from "@/lib/types/task";
 
-// Generate stable UUIDs for agents
-const AGENT_IDS = [
-  "a1000000-0000-0000-0000-000000000001",
-  "a1000000-0000-0000-0000-000000000002",
-  "a1000000-0000-0000-0000-000000000003",
-  "a1000000-0000-0000-0000-000000000004",
-  "a1000000-0000-0000-0000-000000000005",
-  "a1000000-0000-0000-0000-000000000006",
-  "a1000000-0000-0000-0000-000000000007",
-  "a1000000-0000-0000-0000-000000000008",
-  "a1000000-0000-0000-0000-000000000009",
-  "a1000000-0000-0000-0000-000000000010",
-  "a1000000-0000-0000-0000-000000000011",
-  "a1000000-0000-0000-0000-000000000012",
-];
+// Generate stable UUIDs for all agents
+function generateAgentId(index: number): string {
+  return `a1000000-0000-0000-0000-${String(index + 1).padStart(12, "0")}`;
+}
 
 const DEMO_USER_ID = "u1000000-0000-0000-0000-000000000001";
 
 // Create agent objects from presets
 export const mockAgents: Agent[] = PRESET_AGENTS.map((preset, i) => ({
-  id: AGENT_IDS[i],
+  id: generateAgentId(i),
   user_id: DEMO_USER_ID,
   name: preset.name,
   slug: preset.slug,
@@ -75,7 +64,7 @@ export function createMockTask(title: string, section: string = "today", priorit
   return task;
 }
 
-let agentIdCounter = 13;
+let agentIdCounter = PRESET_AGENTS.length + 1;
 
 export function createMockAgent(data: {
   name: string;
