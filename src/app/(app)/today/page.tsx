@@ -90,6 +90,8 @@ export default function TodayPage() {
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [authPrompt, setAuthPrompt] = useState<"login" | "key" | null>(null);
+  const [authCountdown, setAuthCountdown] = useState(10);
 
   useRealtimeTasks(mutate);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -180,15 +182,28 @@ export default function TodayPage() {
   async function handleRunTask(taskId: string) {
     const res = await fetch(`/api/tasks/${taskId}/run`, { method: "POST" });
     if (res.status === 401) {
-      window.location.href = "/login";
+      setAuthCountdown(10);
+      setAuthPrompt("login");
       return;
     }
     if (res.status === 402) {
-      window.location.href = "/settings";
+      setAuthCountdown(10);
+      setAuthPrompt("key");
       return;
     }
     mutate();
   }
+
+  // Countdown timer for auth prompt
+  useEffect(() => {
+    if (!authPrompt) return;
+    if (authCountdown <= 0) {
+      window.location.href = authPrompt === "login" ? "/login" : "/settings";
+      return;
+    }
+    const timer = setTimeout(() => setAuthCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [authPrompt, authCountdown]);
 
   async function handleDropTask(taskId: string, targetSection: string) {
     if (targetSection === "working") {
@@ -820,6 +835,112 @@ export default function TodayPage() {
         onUpdate={() => mutate()}
         onConfetti={handleConfetti}
       />
+
+      {/* Auth prompt overlay */}
+      {authPrompt && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 900,
+          display: "flex", justifyContent: "center", alignItems: "center",
+        }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundColor: "rgba(24,24,27,0.5)",
+            backdropFilter: "blur(8px)",
+            animation: "fadeIn 0.3s ease",
+          }} />
+          <div style={{
+            position: "relative", width: 480, padding: "48px 40px",
+            backgroundColor: "#fff", borderRadius: 24,
+            boxShadow: "0 24px 80px rgba(0,0,0,0.15)",
+            textAlign: "center",
+            animation: "modalIn 0.4s cubic-bezier(0.16,1,0.3,1)",
+          }}>
+            {/* Top gradient accent */}
+            <div style={{
+              position: "absolute", top: 0, left: 0, right: 0, height: 4,
+              background: "linear-gradient(90deg, #4F46E5, #7C3AED, #EC4899)",
+              borderRadius: "24px 24px 0 0",
+            }} />
+
+            {/* Icon */}
+            <div style={{
+              width: 72, height: 72, borderRadius: 20, margin: "0 auto 20px",
+              background: authPrompt === "login"
+                ? "linear-gradient(135deg, #4F46E5, #7C3AED)"
+                : "linear-gradient(135deg, #F59E0B, #F97316)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 32,
+              boxShadow: authPrompt === "login"
+                ? "0 8px 24px rgba(99,102,241,0.3)"
+                : "0 8px 24px rgba(245,158,11,0.3)",
+              animation: "floatY 3s ease-in-out infinite",
+            }}>
+              {authPrompt === "login" ? "🔐" : "🔑"}
+            </div>
+
+            {/* Title */}
+            <h2 style={{
+              fontSize: 24, fontWeight: 900, color: P.text,
+              letterSpacing: "-0.03em", margin: "0 0 8px",
+            }}>
+              {authPrompt === "login" ? "Oh snap! You need to sign in" : "Almost there! Add your API key"}
+            </h2>
+
+            {/* Description */}
+            <p style={{
+              fontSize: 15, color: P.textSec, lineHeight: 1.6,
+              margin: "0 0 28px", maxWidth: 340, marginLeft: "auto", marginRight: "auto",
+            }}>
+              {authPrompt === "login"
+                ? "Create a free account to run AI agents and unlock the full power of AgentStudio."
+                : "Add your OpenAI, Gemini, or Anthropic API key in Settings to start running agents."}
+            </p>
+
+            {/* CTA Button */}
+            <a
+              href={authPrompt === "login" ? "/login" : "/settings"}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "14px 32px", borderRadius: 14,
+                background: authPrompt === "login"
+                  ? "linear-gradient(135deg, #4F46E5, #7C3AED)"
+                  : "linear-gradient(135deg, #F59E0B, #F97316)",
+                color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none",
+                boxShadow: authPrompt === "login"
+                  ? "0 4px 20px rgba(99,102,241,0.35)"
+                  : "0 4px 20px rgba(245,158,11,0.35)",
+                transition: "all 0.2s",
+              }}
+            >
+              {authPrompt === "login" ? "Sign In Free" : "Go to Settings"}
+            </a>
+
+            {/* Countdown */}
+            <p style={{
+              fontSize: 13, color: P.textTer, marginTop: 20, marginBottom: 0,
+            }}>
+              Redirecting in <span style={{
+                fontWeight: 700, color: P.indigo,
+                fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+              }}>{authCountdown}s</span>
+            </p>
+
+            {/* Progress bar */}
+            <div style={{
+              marginTop: 12, height: 3, backgroundColor: P.border,
+              borderRadius: 2, overflow: "hidden",
+            }}>
+              <div style={{
+                height: "100%",
+                width: `${((10 - authCountdown) / 10) * 100}%`,
+                background: "linear-gradient(90deg, #4F46E5, #7C3AED)",
+                borderRadius: 2,
+                transition: "width 1s linear",
+              }} />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
