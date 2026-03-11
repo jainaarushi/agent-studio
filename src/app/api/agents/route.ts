@@ -102,12 +102,28 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
-  if (user.isDemo) return NextResponse.json({ error: "Sign up to create agents", login: true }, { status: 401 });
 
   const body = await request.json();
   const parsed = createAgentSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  // Demo user — create in mock data
+  if (user.isDemo) {
+    const { createMockAgent } = await import("@/lib/mock-data");
+    const agent = createMockAgent({
+      name: parsed.data.name,
+      slug: parsed.data.slug,
+      description: parsed.data.description ?? null,
+      long_description: parsed.data.long_description ?? null,
+      icon: parsed.data.icon,
+      color: parsed.data.color,
+      gradient: parsed.data.gradient,
+      system_prompt: parsed.data.system_prompt,
+      model: parsed.data.model,
+    });
+    return NextResponse.json(agent, { status: 201 });
   }
 
   const agent = await createAgent(user.id, {

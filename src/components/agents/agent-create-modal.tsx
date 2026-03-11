@@ -268,31 +268,6 @@ export function AgentCreateModal({ open, onClose, onCreated }: AgentCreateModalP
             />
           </div>
 
-          {/* Model */}
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: 13, fontWeight: 700, color: P.textSec, display: "block", marginBottom: 8 }}>
-              Model
-            </label>
-            <div style={{ display: "flex", gap: 8 }}>
-              {MODEL_OPTIONS.map((m) => (
-                <button
-                  key={m.value}
-                  onClick={() => setModel(m.value)}
-                  style={{
-                    flex: 1, padding: "10px 14px", borderRadius: 10,
-                    border: `2px solid ${model === m.value ? selectedColor.color + "60" : P.border}`,
-                    backgroundColor: model === m.value ? selectedColor.color + "08" : P.card,
-                    cursor: "pointer", textAlign: "left",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  <div style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{m.label}</div>
-                  <div style={{ fontSize: 11, color: P.textTer, marginTop: 2 }}>{m.desc}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* System prompt */}
           <div style={{ marginBottom: 20 }}>
             <label style={{ fontSize: 13, fontWeight: 700, color: P.textSec, display: "block", marginBottom: 6 }}>
