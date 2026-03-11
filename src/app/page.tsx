@@ -62,19 +62,28 @@ export default function LandingPage() {
       <style>{`
         @media (max-width: 768px) {
           .landing-nav-links { display: none !important; }
+          .landing-mobile-cta { display: inline-flex !important; }
           .landing-hero { padding-top: 100px !important; padding-bottom: 40px !important; }
           .landing-hero h1 { font-size: 32px !important; }
-          .landing-hero p { font-size: 15px !important; }
-          .landing-stats { grid-template-columns: repeat(2, 1fr) !important; }
+          .landing-hero p { font-size: 15px !important; max-width: 100% !important; }
+          .landing-hero-img { margin-top: 32px !important; }
+          .landing-hero-blobs { display: none !important; }
+          .landing-stats { grid-template-columns: repeat(2, 1fr) !important; border-radius: 14px !important; }
           .landing-features-grid { grid-template-columns: 1fr !important; }
-          .landing-steps { padding: 16px 16px !important; }
-          .landing-cta-box { padding: 36px 20px !important; margin: 0 12px !important; }
+          .landing-steps-wrapper { padding: 40px 16px !important; }
+          .landing-step-card { padding: 18px 16px !important; gap: 14px !important; }
+          .landing-cta-box { padding: 36px 20px !important; }
           .landing-cta-box h2 { font-size: 24px !important; }
           .landing-problem-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
           .landing-problem-arrow { display: none !important; }
-          .landing-section { padding-left: 16px !important; padding-right: 16px !important; }
-          .landing-agents-grid { gap: 8px !important; }
+          .landing-problem-section { padding: 40px 16px 0 !important; }
+          .landing-agents-section { padding: 60px 0 40px !important; }
+          .landing-agents-grid { gap: 6px !important; padding: 0 12px !important; }
+          .landing-agents-grid > * { min-width: 140px !important; padding: 7px 10px !important; border-radius: 9px !important; }
+          .landing-agents-grid > * span:first-child { font-size: 15px !important; }
+          .landing-features-section { padding: 40px 16px !important; }
           .landing-footer { flex-direction: column !important; gap: 12px !important; text-align: center; }
+          .landing-callout { margin: 24px 16px !important; padding: 16px 18px !important; }
         }
       `}</style>
 
@@ -94,6 +103,12 @@ export default function LandingPage() {
             }} />
             <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.03em" }}>AgentStudio</span>
           </div>
+          <a className="landing-mobile-cta" href="/today" style={{
+            display: "none", alignItems: "center",
+            padding: "8px 16px", borderRadius: 10,
+            background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+            color: "#fff", fontSize: 13, fontWeight: 600, textDecoration: "none",
+          }}>Get Started</a>
           <div className="landing-nav-links" style={{ display: "flex", alignItems: "center", gap: 32 }}>
             <a href="#features" style={{ fontSize: 14, color: "#666", textDecoration: "none" }}>Features</a>
             <a href="#agents" style={{ fontSize: 14, color: "#666", textDecoration: "none" }}>Agents</a>
@@ -123,7 +138,7 @@ export default function LandingPage() {
           zIndex: 0,
         }} />
         {/* Decorative blobs */}
-        <div style={{
+        <div className="landing-hero-blobs" style={{
           position: "absolute", top: 100, left: "10%", width: 400, height: 400,
           background: "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)",
           borderRadius: "50%", zIndex: 0,
@@ -220,6 +235,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 50, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.5 }}
+            className="landing-hero-img"
             style={{ marginTop: 60, position: "relative" }}
           >
             <div style={{
@@ -269,10 +285,10 @@ export default function LandingPage() {
       </section>
 
       {/* ─── PROBLEM → SOLUTION ─── */}
-      <section style={{ padding: "80px 24px 0" }}>
+      <section className="landing-problem-section" style={{ padding: "80px 24px 0" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 48 }}>
-            <h2 style={{ fontSize: 36, fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 12 }}>
+            <h2 style={{ fontSize: "clamp(24px, 5vw, 36px)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 12 }}>
               Too many AI tools. One simple fix.
             </h2>
           </motion.div>
@@ -323,6 +339,7 @@ export default function LandingPage() {
 
           {/* Unlike Other Tools callout */}
           <motion.div
+            className="landing-callout"
             initial={fadeUp.hidden} whileInView={fadeUp.show} viewport={{ once: true }}
             style={{
               marginTop: 40, padding: "24px 28px", borderRadius: 16,
@@ -340,7 +357,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── AGENTS SHOWCASE ─── */}
-      <section id="agents" style={{ padding: "100px 0 80px" }}>
+      <section id="agents" className="landing-agents-section" style={{ padding: "100px 0 80px" }}>
         <div style={{ maxWidth: "100%", margin: "0 auto" }}>
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 48, padding: "0 24px" }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>Meet Your Agents</span>
@@ -355,7 +372,8 @@ export default function LandingPage() {
           <motion.div
             initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }}
             variants={stagger}
-            style={{ display: "flex", overflowX: "auto", gap: 8, padding: "0", scrollbarWidth: "none" }}
+            className="landing-agents-grid"
+            style={{ display: "flex", overflowX: "auto", gap: 8, padding: "0 24px", scrollbarWidth: "none" }}
           >
             {[...POPULAR_AGENTS, ...POPULAR_AGENTS, ...POPULAR_AGENTS].map((agent, i) => (
               <motion.a
@@ -394,7 +412,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── FEATURES ─── */}
-      <section id="features" style={{ padding: "80px 24px", backgroundColor: "#fff" }}>
+      <section id="features" className="landing-features-section" style={{ padding: "80px 24px", backgroundColor: "#fff" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 56 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>Features</span>
@@ -439,7 +457,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section id="how-it-works" style={{ padding: "80px 24px" }}>
+      <section id="how-it-works" className="landing-steps-wrapper" style={{ padding: "80px 24px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ textAlign: "center", marginBottom: 56 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>How It Works</span>
