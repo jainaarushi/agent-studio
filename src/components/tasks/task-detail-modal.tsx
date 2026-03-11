@@ -22,6 +22,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const [hoveredAgent, setHoveredAgent] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loginPrompt, setLoginPrompt] = useState(false);
+  const [loginPromptMsg, setLoginPromptMsg] = useState("");
   const [feedback, setFeedback] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [userInput, setUserInput] = useState("");
@@ -30,7 +31,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
 
   // Reset user input when modal opens with a new task
   useEffect(() => {
-    if (open) { setUserInput(""); setShowFeedback(false); setFeedback(""); }
+    if (open) { setUserInput(""); setShowFeedback(false); setFeedback(""); setLoginPrompt(false); setLoginPromptMsg(""); }
   }, [open, initialTask?.id]);
 
   // Auto-refresh while task is working
@@ -64,7 +65,14 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
     if (res.status === 401) {
       setLoading(false);
       setLoginPrompt(true);
-      setTimeout(() => { window.location.href = "/login"; }, 2000);
+      setTimeout(() => { window.location.href = "/login"; }, 2500);
+      return;
+    }
+    if (res.status === 402) {
+      setLoading(false);
+      setLoginPrompt(true);
+      setLoginPromptMsg("Add an API key to run agents");
+      setTimeout(() => { window.location.href = "/settings"; }, 2500);
       return;
     }
     mutateTask();
@@ -107,7 +115,14 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
     if (runRes.status === 401) {
       setLoading(false);
       setLoginPrompt(true);
-      setTimeout(() => { window.location.href = "/login"; }, 2000);
+      setTimeout(() => { window.location.href = "/login"; }, 2500);
+      return;
+    }
+    if (runRes.status === 402) {
+      setLoading(false);
+      setLoginPrompt(true);
+      setLoginPromptMsg("Add an API key to run agents");
+      setTimeout(() => { window.location.href = "/settings"; }, 2500);
       return;
     }
     setFeedback("");
@@ -364,15 +379,15 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
             borderRadius: 20,
             animation: "fadeIn 0.2s ease",
           }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🔐</div>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>{loginPromptMsg ? "🔑" : "🔐"}</div>
             <h3 style={{ fontSize: 20, fontWeight: 700, color: P.text, marginBottom: 6 }}>
-              Sign up to run agents
+              {loginPromptMsg || "Sign in to run agents"}
             </h3>
             <p style={{ fontSize: 14, color: P.textSec, marginBottom: 16 }}>
-              Create a free account to start using AI agents
+              {loginPromptMsg ? "Go to Settings to add your OpenAI, Gemini, or Anthropic key" : "Create a free account to start using AI agents"}
             </p>
             <a
-              href="/login"
+              href={loginPromptMsg ? "/settings" : "/login"}
               style={{
                 padding: "10px 24px", borderRadius: 10,
                 backgroundColor: P.indigo, color: "#fff",
@@ -380,7 +395,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                 transition: "all 0.2s",
               }}
             >
-              Sign Up Free
+              {loginPromptMsg ? "Go to Settings" : "Sign In Free"}
             </a>
             <p style={{ fontSize: 12, color: P.textTer, marginTop: 10 }}>
               Redirecting in a moment...

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTask, getAgent, updateTask as updateMockTask, mockSteps } from "@/lib/mock-data";
-import { requireAuth } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth";
 import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODELS } from "@/lib/ai/client";
 import { getUserAIConfig } from "@/lib/ai/get-user-key";
 import { calculateCost } from "@/lib/ai/cost";
@@ -23,8 +23,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const user = await requireAuth();
-  if (!user) return NextResponse.json({ error: "Sign up to run agents", login: true }, { status: 401 });
+  const user = await getAuthUser();
+  if (user.isDemo) return NextResponse.json({ error: "Sign in to run AI agents", login: true }, { status: 401 });
 
   // Get task and agent
   let taskTitle: string;
@@ -83,11 +83,17 @@ export async function POST(
   // Get AI config
   const aiConfig = await getUserAIConfig(user.id);
 
-  if (aiConfig) {
-    runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey);
-  } else {
-    runDemoPipeline(user.id, id, agentName, pipeline, steps);
+  if (!aiConfig) {
+    // Revert task status since we can't run without a key
+    await persistTaskUpdate(user.id, id, {
+      status: "todo",
+      progress: 0,
+      current_step: null,
+    });
+    return NextResponse.json({ error: "Add an API key in Settings to run agents", needsKey: true }, { status: 402 });
   }
+
+  runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey);
 
   return NextResponse.json({ status: "started" });
 }
