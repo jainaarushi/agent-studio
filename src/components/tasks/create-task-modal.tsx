@@ -130,6 +130,13 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
   const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
   const [dragPipelineIdx, setDragPipelineIdx] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedFile, setUploadedFile] = useState<{ filename: string; mimeType: string; textContent: string | null } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Smart agent suggestions based on what the user types
   const suggestions = useMemo(() => suggestAgents(value, agents), [value, agents]);
@@ -142,6 +149,9 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
       setSelectedAgentIds([]);
       setValue("");
       setActiveCategory("for-you");
+      setUploadedFile(null);
+      setRecording(false);
+      setTranscribing(false);
     }
   }, [open, preSelectedAgentId]);
 
@@ -185,12 +195,73 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
     setDragPipelineIdx(null);
   }
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || "Upload failed"); return; }
+      setUploadedFile(data.file);
+    } catch { alert("Upload failed."); }
+    finally { setUploading(false); if (fileInputRef.current) fileInputRef.current.value = ""; }
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        setTranscribing(true);
+        try {
+          const arrayBuffer = await blob.arrayBuffer();
+          const audioCtx = new AudioContext({ sampleRate: 16000 });
+          const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+          const pcm = decoded.getChannelData(0);
+          const int16 = new Int16Array(pcm.length);
+          for (let i = 0; i < pcm.length; i++) { const s = Math.max(-1, Math.min(1, pcm[i])); int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF; }
+          const wavBuf = new ArrayBuffer(44 + int16.byteLength);
+          const v = new DataView(wavBuf);
+          const ws = (o: number, s: string) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+          ws(0,"RIFF"); v.setUint32(4,36+int16.byteLength,true); ws(8,"WAVE"); ws(12,"fmt ");
+          v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+          v.setUint32(24,16000,true); v.setUint32(28,32000,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+          ws(36,"data"); v.setUint32(40,int16.byteLength,true); new Int16Array(wavBuf,44).set(int16);
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(wavBuf)));
+          audioCtx.close();
+          const res = await fetch("/api/speech", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ audio: base64 }) });
+          const data = await res.json();
+          if (res.ok && data.text) { setValue((prev) => (prev ? prev + " " : "") + data.text); }
+          else { alert(data.error || "Voice transcription failed"); }
+        } catch (err) { alert("Voice processing failed."); console.error(err); }
+        finally { setTranscribing(false); }
+      };
+      mediaRecorder.start();
+      setRecording(true);
+    } catch { alert("Microphone access denied."); }
+  }
+
+  function stopRecording() { mediaRecorderRef.current?.stop(); setRecording(false); }
+
   function handleSubmit(title?: string) {
-    const text = (title || value).trim();
+    let text = (title || value).trim();
     if (!text) return;
+    // Append file content to task title as description context
+    if (uploadedFile?.textContent) {
+      text = text + "\n\n[Attached: " + uploadedFile.filename + "]\n" + uploadedFile.textContent;
+    }
     onSubmit(text, selectedAgentIds.length > 0 ? selectedAgentIds : undefined);
     setValue("");
     setSelectedAgentIds([]);
+    setUploadedFile(null);
     onClose();
   }
 
@@ -335,6 +406,76 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
               >
                 Create
               </button>
+            )}
+          </div>
+
+          {/* Voice + File buttons */}
+          <input ref={fileInputRef} type="file" accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.csv,.json,.md,.jpg,.jpeg,.png,.gif,.webp" onChange={handleFileUpload} style={{ display: "none" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: -16, marginBottom: 16 }}>
+            <button
+              onClick={recording ? stopRecording : startRecording}
+              disabled={transcribing}
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "5px 12px", borderRadius: 8,
+                border: `1.5px solid ${recording ? "#EF4444" : P.border}`,
+                backgroundColor: recording ? "#FEF2F2" : P.card,
+                color: recording ? "#EF4444" : P.textSec,
+                fontSize: 11.5, fontWeight: 600, cursor: "pointer",
+                fontFamily: "inherit", transition: "all 0.15s",
+                opacity: transcribing ? 0.5 : 1,
+                animation: recording ? "pulseGlow 1.5s ease-in-out infinite" : "none",
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                {recording ? <rect x="6" y="6" width="12" height="12" rx="2" /> : (
+                  <>
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                  </>
+                )}
+              </svg>
+              {transcribing ? "Transcribing..." : recording ? "Stop" : "Voice"}
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "5px 12px", borderRadius: 8,
+                border: `1.5px solid ${P.border}`,
+                backgroundColor: P.card, color: P.textSec,
+                fontSize: 11.5, fontWeight: 600, cursor: "pointer",
+                fontFamily: "inherit", transition: "all 0.15s",
+                opacity: uploading ? 0.5 : 1,
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              {uploading ? "Uploading..." : "Attach"}
+            </button>
+            {uploadedFile && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "4px 10px", borderRadius: 8,
+                backgroundColor: P.indigo + "08", border: `1px solid ${P.indigo}15`,
+                fontSize: 11, fontWeight: 600, color: P.text,
+              }}>
+                📄 {uploadedFile.filename}
+                <button onClick={() => setUploadedFile(null)} style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: P.textTer, fontSize: 10, padding: "0 2px",
+                }}>✕</button>
+              </div>
+            )}
+            {recording && (
+              <span style={{ fontSize: 10.5, color: "#EF4444", fontWeight: 500 }}>
+                Recording... click Stop when done
+              </span>
             )}
           </div>
 
