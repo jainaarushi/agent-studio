@@ -2,14 +2,14 @@ import { z } from "zod";
 
 export const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required").max(500),
-  description: z.string().max(5000).optional(),
+  description: z.string().max(50000).optional(),
   section: z.enum(["today", "week", "later"]).default("today"),
   priority: z.enum(["urgent", "high", "normal", "low"]).default("normal"),
 });
 
 export const updateTaskSchema = z.object({
   title: z.string().min(1).max(500).optional(),
-  description: z.string().max(5000).nullable().optional(),
+  description: z.string().max(50000).nullable().optional(),
   status: z.enum(["todo", "working", "review", "done", "failed"]).optional(),
   progress: z.number().min(0).max(100).optional(),
   current_step: z.string().nullable().optional(),

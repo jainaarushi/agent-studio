@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AgentAvatar } from "@/components/agents/agent-avatar";
 import { useTask } from "@/lib/hooks/use-task";
 import { useAgents } from "@/lib/hooks/use-agents";
@@ -26,12 +26,15 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const [feedback, setFeedback] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [userInput, setUserInput] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<{ filename: string; mimeType: string; textContent: string | null; base64Image: string | null } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const task = fullTask || initialTask;
 
   // Reset user input when modal opens with a new task
   useEffect(() => {
-    if (open) { setUserInput(""); setShowFeedback(false); setFeedback(""); setLoginPrompt(false); setLoginPromptMsg(""); }
+    if (open) { setUserInput(""); setUploadedFile(null); setShowFeedback(false); setFeedback(""); setLoginPrompt(false); setLoginPromptMsg(""); }
   }, [open, initialTask?.id]);
 
   // Auto-refresh while task is working
@@ -51,14 +54,41 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const isTodo = task.status === "todo";
   const isFailed = task.status === "failed";
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Upload failed");
+        return;
+      }
+      setUploadedFile(data.file);
+    } catch {
+      alert("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   async function handleRun() {
     setLoading(true);
-    // Save user input as task description before running
-    if (userInput.trim()) {
+    // Build description from user input + uploaded file
+    let description = userInput.trim();
+    if (uploadedFile?.textContent) {
+      description = (description ? description + "\n\n" : "") +
+        `--- Uploaded File: ${uploadedFile.filename} ---\n${uploadedFile.textContent}`;
+    }
+    if (description) {
       await fetch(`/api/tasks/${task!.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: userInput.trim() }),
+        body: JSON.stringify({ description }),
       });
     }
     const res = await fetch(`/api/tasks/${task!.id}/run`, { method: "POST" });
@@ -511,6 +541,79 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                 onFocus={(e) => { e.currentTarget.style.borderColor = agent?.color || P.indigo; }}
                 onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
               />
+
+              {/* File upload */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.csv,.json,.md,.jpg,.jpeg,.png,.gif,.webp"
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+              />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "7px 14px", borderRadius: 9,
+                    border: `1.5px solid ${P.border}`,
+                    backgroundColor: P.card, color: P.textSec,
+                    fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "inherit", transition: "all 0.15s",
+                    opacity: uploading ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = agent?.color || P.indigo; e.currentTarget.style.backgroundColor = P.sidebar; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.backgroundColor = P.card; }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  {uploading ? "Uploading..." : "Attach file"}
+                </button>
+                <span style={{ fontSize: 10.5, color: P.textTer }}>
+                  PDF, DOCX, XLSX, images — max 10MB
+                </span>
+              </div>
+
+              {/* Uploaded file badge */}
+              {uploadedFile && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 8, marginBottom: 12,
+                  padding: "8px 12px", borderRadius: 10,
+                  backgroundColor: agent?.color ? agent.color + "08" : P.sidebar,
+                  border: `1px solid ${agent?.color ? agent.color + "20" : P.border}`,
+                  animation: "fadeUp 0.2s ease",
+                }}>
+                  <span style={{ fontSize: 16 }}>
+                    {uploadedFile.mimeType.startsWith("image/") ? "🖼️" : "📄"}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: P.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {uploadedFile.filename}
+                    </div>
+                    <div style={{ fontSize: 10, color: P.textTer }}>
+                      {uploadedFile.textContent
+                        ? `${uploadedFile.textContent.length.toLocaleString()} chars extracted`
+                        : uploadedFile.base64Image ? "Image attached" : "File attached"}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setUploadedFile(null)}
+                    style={{
+                      width: 20, height: 20, borderRadius: 6, border: "none",
+                      backgroundColor: "transparent", color: P.textTer,
+                      cursor: "pointer", fontSize: 12, display: "flex",
+                      alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
               <button
                 onClick={handleRun}
                 disabled={loading}
