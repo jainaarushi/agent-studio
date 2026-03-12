@@ -4,12 +4,21 @@ import { getAuthUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { createUserAnthropic, createUserGemini, createUserOpenAI, PROVIDER_MODELS } from "@/lib/ai/client";
 import { getUserAIConfig } from "@/lib/ai/get-user-key";
+import { getUserToolKeys } from "@/lib/ai/get-tool-keys";
 import { calculateCost, calculateImageCost } from "@/lib/ai/cost";
-import { getPipeline } from "@/lib/ai/pipelines";
+import { getPipeline, type PipelineStep } from "@/lib/ai/pipelines";
+import { getRequiredToolKeys } from "@/lib/ai/tools/registry";
+import { createWebSearchTool } from "@/lib/ai/tools/web-search";
+import { createWebScrapeTool } from "@/lib/ai/tools/web-scrape";
+import { createFinanceDataTool } from "@/lib/ai/tools/finance-data";
+import { createDataQueryTool, parseFileDataFromDescription, type ParsedFileData } from "@/lib/ai/tools/data-query";
+import { createDeepResearchTool } from "@/lib/ai/tools/deep-research";
+import { createCalculatorTool } from "@/lib/ai/tools/calculator";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { getTaskById, updateTaskById } from "@/lib/data/tasks";
 import { getAgentById } from "@/lib/data/agents";
 import type { TaskStep } from "@/lib/types/task";
+import type { UserToolKeys } from "@/lib/ai/get-tool-keys";
 
 async function persistTaskUpdate(userId: string, taskId: string, data: Record<string, unknown>) {
   if (isSupabaseEnabled()) {
@@ -91,7 +100,6 @@ export async function POST(
   const aiConfig = await getUserAIConfig(user.id);
 
   if (!aiConfig) {
-    // Revert task status since we can't run without a key
     await persistTaskUpdate(user.id, id, {
       status: "todo",
       progress: 0,
@@ -100,15 +108,37 @@ export async function POST(
     return NextResponse.json({ error: "Add an API key in Settings to run agents", needsKey: true }, { status: 402 });
   }
 
-  runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey);
+  // Check required tool keys
+  const requiredToolKeys = getRequiredToolKeys(agentSlug);
+  let toolKeys: UserToolKeys = {};
+
+  if (requiredToolKeys.length > 0 || pipeline.some(s => s.tools?.length)) {
+    toolKeys = await getUserToolKeys(user.id);
+
+    // Check if required keys are present
+    for (const key of requiredToolKeys) {
+      if (!toolKeys[key as keyof UserToolKeys]) {
+        await persistTaskUpdate(user.id, id, {
+          status: "todo",
+          progress: 0,
+          current_step: null,
+        });
+        const keyNames: Record<string, string> = { tavily: "Tavily", firecrawl: "Firecrawl", serp: "SerpAPI" };
+        return NextResponse.json({
+          error: `This agent needs a ${keyNames[key] || key} API key for web search. Add it in Settings → Tool API Keys.`,
+          needsKey: true,
+          keyType: key,
+        }, { status: 402 });
+      }
+    }
+  }
+
+  runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSlug, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey, toolKeys);
 
   return NextResponse.json({ status: "started" });
 }
 
 // ── Pipeline Execution ───────────────────────────────────────
-// isCore = first real API call (generates draft output)
-// isCore2 = second real API call (refines/synthesizes the draft)
-// Other steps = visual delays for UX
 
 async function runPipeline(
   userId: string,
@@ -116,11 +146,13 @@ async function runPipeline(
   title: string,
   description: string | null,
   agentName: string,
+  agentSlug: string,
   systemPrompt: string,
-  pipeline: { description: string; duration: number; isCore?: boolean; isCore2?: boolean; core2Prompt?: string }[],
+  pipeline: PipelineStep[],
   steps: TaskStep[],
   provider: "openai" | "gemini" | "anthropic",
   apiKey: string,
+  toolKeys: UserToolKeys,
 ) {
   const startTime = Date.now();
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
@@ -138,71 +170,54 @@ async function runPipeline(
   let totalTokensOut = 0;
   let finalOutput = "";
 
+  // Parse file data if any step needs it
+  let parsedFileData: ParsedFileData | null = null;
+  if (pipeline.some(s => s.requiresFileData) && description) {
+    parsedFileData = parseFileDataFromDescription(description);
+  }
+
   // Detect if user wants image output
-  const lowerTitle = title.toLowerCase();
-  const lowerDesc = (description || "").toLowerCase();
-  const combined = lowerTitle + " " + lowerDesc;
+  const combined = (title + " " + (description || "")).toLowerCase();
   const wantsImage = /\b(generate|create|make|draw|design|sketch|render|produce)\b.*\b(image|picture|photo|illustration|graphic|logo|icon|banner|poster|thumbnail|art|artwork|visual|diagram)\b/i.test(combined)
     || /\b(image|picture|photo|illustration|graphic|logo|icon|banner|poster|thumbnail)\b.*\b(of|for|about|showing|with)\b/i.test(combined);
 
   try {
-    // If user wants an image AND provider supports it (OpenAI)
+    // Image generation path (unchanged)
     if (wantsImage && provider === "openai") {
-      await persistTaskUpdate(userId, taskId, {
-        progress: 30,
-        current_step: "Generating image...",
-      });
+      await persistTaskUpdate(userId, taskId, { progress: 30, current_step: "Generating image..." });
 
       try {
         const { generateImage } = await import("ai");
         const imageModel = createUserOpenAI(apiKey).image("dall-e-3");
-        const imagePrompt = description
-          ? `${title}. ${description}`
-          : title;
+        const imagePrompt = description ? `${title}. ${description}` : title;
 
-        const imageResult = await generateImage({
-          model: imageModel,
-          prompt: imagePrompt,
-          size: "1024x1024",
-        });
-
+        const imageResult = await generateImage({ model: imageModel, prompt: imagePrompt, size: "1024x1024" });
         const image = imageResult.images[0];
         if (image) {
-          const base64 = image.base64;
-          finalOutput = `![Generated Image](data:image/png;base64,${base64})\n\n**Prompt:** ${imagePrompt}`;
-
+          finalOutput = `![Generated Image](data:image/png;base64,${image.base64})\n\n**Prompt:** ${imagePrompt}`;
           const cost = calculateImageCost("dall-e-3", "1024x1024", 1);
           const duration = Math.round((Date.now() - startTime) / 1000);
-
           await persistTaskUpdate(userId, taskId, {
-            status: "review",
-            progress: 100,
-            output: finalOutput,
-            output_format: "image",
-            cost_usd: cost,
-            tokens_in: 0,
-            tokens_out: 0,
-            duration_seconds: duration,
+            status: "review", progress: 100, output: finalOutput, output_format: "image",
+            cost_usd: cost, tokens_in: 0, tokens_out: 0, duration_seconds: duration,
             current_step: "Image generated — ready for review",
           });
           return;
         }
       } catch (imgErr) {
         console.error("Image generation failed, falling back to text:", imgErr);
-        // Fall through to text generation
       }
     }
 
-    // If user wanted an image but we're not on OpenAI, add context to the text prompt
     if (wantsImage && provider !== "openai") {
       systemPrompt += "\n\nNote: The user wants a visual/image output. Since image generation is not available with this provider, provide a detailed text description of what the image would look like, and create the best text-based output you can (ASCII art, detailed visual description, or structured layout).";
     }
 
+    // ── Step execution loop ──────────────────────────────────
     for (let i = 0; i < pipeline.length; i++) {
       const step = pipeline[i];
       const progress = Math.round(((i + 0.5) / pipeline.length) * 100);
 
-      // Mark current step as working
       steps[i].status = "working";
       steps[i].started_at = new Date().toISOString();
       await persistTaskUpdate(userId, taskId, {
@@ -211,22 +226,40 @@ async function runPipeline(
       });
 
       if (step.isCore) {
-        // FIRST real API call — generate draft
+        // FIRST real API call — with optional tool support
         const userMessage = description
           ? `Task: ${title}\n\nDetails: ${description}\n\nToday's date: ${today}`
           : `Task: ${title}\n\nToday's date: ${today}`;
 
+        const stepTools = buildToolsForStep(step, toolKeys, parsedFileData);
+        const hasTools = Object.keys(stepTools).length > 0;
+
+        const coreSystem = step.toolContext
+          ? systemPrompt + "\n\n" + step.toolContext
+          : systemPrompt;
+
         const result = await generateText({
           model: aiModel,
-          system: systemPrompt,
+          system: coreSystem,
           prompt: userMessage,
+          ...(hasTools ? { tools: stepTools, maxSteps: step.maxToolSteps || 3 } : {}),
         });
 
         draftOutput = result.text;
         finalOutput = result.text;
+
+        // Aggregate tokens from all steps (tool calls can produce multiple rounds)
         const usage = result.usage as { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number } | undefined;
         totalTokensIn += usage?.inputTokens || usage?.promptTokens || 0;
         totalTokensOut += usage?.outputTokens || usage?.completionTokens || 0;
+
+        // Update step with tool call info
+        const toolCallCount = result.steps?.reduce((acc, s) => acc + (s.toolCalls?.length || 0), 0) || 0;
+        if (toolCallCount > 0) {
+          await persistTaskUpdate(userId, taskId, {
+            current_step: `${step.description} (${toolCallCount} tool calls)`,
+          });
+        }
 
         steps[i].status = "done";
         steps[i].completed_at = new Date().toISOString();
@@ -288,6 +321,46 @@ async function runPipeline(
   }
 }
 
+// ── Tool Builder ─────────────────────────────────────────────
+
+function buildToolsForStep(
+  step: PipelineStep,
+  toolKeys: UserToolKeys,
+  parsedFileData: ParsedFileData | null,
+): Record<string, ReturnType<typeof createWebSearchTool>> {
+  const tools: Record<string, ReturnType<typeof createWebSearchTool>> = {};
+
+  for (const toolId of step.tools || []) {
+    switch (toolId) {
+      case "web-search":
+        if (toolKeys.tavily) {
+          tools.web_search = createWebSearchTool(toolKeys.tavily);
+        }
+        break;
+      case "web-scrape":
+        tools.web_scrape = createWebScrapeTool(toolKeys.firecrawl);
+        break;
+      case "finance-data":
+        tools.get_stock_data = createFinanceDataTool();
+        break;
+      case "data-query":
+        if (parsedFileData) {
+          tools.query_data = createDataQueryTool(parsedFileData);
+        }
+        break;
+      case "deep-research":
+        if (toolKeys.tavily) {
+          tools.deep_research = createDeepResearchTool(toolKeys.tavily);
+        }
+        break;
+      case "calculator":
+        tools.calculate = createCalculatorTool();
+        break;
+    }
+  }
+
+  return tools;
+}
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

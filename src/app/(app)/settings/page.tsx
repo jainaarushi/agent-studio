@@ -30,6 +30,14 @@ export default function SettingsPage() {
   const [wisprSaving, setWisprSaving] = useState(false);
   const [wisprMessage, setWisprMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Tool API keys
+  const [tavilyInfo, setTavilyInfo] = useState<KeyInfo | null>(null);
+  const [firecrawlInfo, setFirecrawlInfo] = useState<KeyInfo | null>(null);
+  const [serpInfo, setSerpInfo] = useState<KeyInfo | null>(null);
+  const [toolKeyInputs, setToolKeyInputs] = useState<Record<string, string>>({ tavily: "", firecrawl: "", serp: "" });
+  const [toolSaving, setToolSaving] = useState<string | null>(null);
+  const [toolMessage, setToolMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   useEffect(() => {
     fetch("/api/user/api-key")
       .then((r) => r.json())
@@ -38,6 +46,9 @@ export default function SettingsPage() {
         setAnthropicInfo(data.anthropic);
         setGeminiInfo(data.gemini);
         if (data.wispr) setWisprInfo(data.wispr);
+        if (data.tavily) setTavilyInfo(data.tavily);
+        if (data.firecrawl) setFirecrawlInfo(data.firecrawl);
+        if (data.serp) setSerpInfo(data.serp);
         if (data.provider) setActiveProvider(data.provider);
       })
       .catch(() => {});
@@ -117,6 +128,32 @@ export default function SettingsPage() {
       setWisprMessage({ type: "error", text: "Network error" });
     } finally {
       setWisprSaving(false);
+    }
+  }
+
+  async function handleSaveToolKey(providerId: string, providerName: string, setInfo: (info: KeyInfo | null) => void) {
+    const key = toolKeyInputs[providerId]?.trim();
+    if (!key) return;
+    setToolSaving(providerId);
+    setToolMessage(null);
+    try {
+      const res = await fetch("/api/user/api-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ api_key: key, provider: providerId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setInfo({ hasKey: true, maskedKey: data.maskedKey });
+        setToolKeyInputs(prev => ({ ...prev, [providerId]: "" }));
+        setToolMessage({ type: "success", text: `${providerName} key saved and encrypted` });
+      } else {
+        setToolMessage({ type: "error", text: data.error || "Failed to save" });
+      }
+    } catch {
+      setToolMessage({ type: "error", text: "Network error" });
+    } finally {
+      setToolSaving(null);
     }
   }
 
@@ -461,6 +498,169 @@ export default function SettingsPage() {
             Get key at platform.wisprflow.ai →
           </a>
         </div>
+      </div>
+
+      {/* Tool API Keys */}
+      <div style={{
+        padding: "22px 24px", backgroundColor: P.card, borderRadius: 16,
+        border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+        animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.11s both",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <span style={{ fontSize: 18 }}>🔧</span>
+          <div style={{ fontSize: 16, fontWeight: 700, color: P.text }}>Tool API Keys</div>
+          <span style={{
+            fontSize: 9, fontWeight: 700, color: "#fff",
+            backgroundColor: "#6366F1", padding: "2px 6px", borderRadius: 4,
+          }}>
+            Optional
+          </span>
+        </div>
+        <p style={{ fontSize: 12.5, color: P.textTer, marginBottom: 16, lineHeight: 1.5 }}>
+          Some agents use external tools (web search, scraping) that need their own API keys. Most agents work without these.
+        </p>
+
+        {[
+          {
+            id: "tavily",
+            name: "Tavily",
+            icon: "🔍",
+            color: "#2563EB",
+            gradient: "linear-gradient(135deg, #2563EB, #3B82F6)",
+            placeholder: "tvly-...",
+            description: "Web search for research agents (1000 free searches/month)",
+            link: "https://tavily.com",
+            linkText: "Get free key at tavily.com",
+            info: tavilyInfo,
+            setInfo: setTavilyInfo,
+            agents: "Deep Research, Journalist, Competitor Intel, Travel Planner, Sales Rep",
+          },
+          {
+            id: "firecrawl",
+            name: "Firecrawl",
+            icon: "🔥",
+            color: "#F97316",
+            gradient: "linear-gradient(135deg, #F97316, #FB923C)",
+            placeholder: "fc-...",
+            description: "Advanced web scraping (500 free credits)",
+            link: "https://firecrawl.dev",
+            linkText: "Get key at firecrawl.dev",
+            info: firecrawlInfo,
+            setInfo: setFirecrawlInfo,
+            agents: "Web Intel, Deep Research (enhanced)",
+          },
+          {
+            id: "serp",
+            name: "SerpAPI",
+            icon: "🌐",
+            color: "#059669",
+            gradient: "linear-gradient(135deg, #059669, #10B981)",
+            placeholder: "your-serp-key...",
+            description: "Google search results (100 free/month)",
+            link: "https://serpapi.com",
+            linkText: "Get key at serpapi.com",
+            info: serpInfo,
+            setInfo: setSerpInfo,
+            agents: "Alternative to Tavily for search",
+          },
+        ].map((tp) => (
+          <div key={tp.id} style={{
+            padding: "14px 16px", borderRadius: 12,
+            border: `1.5px solid ${tp.info?.hasKey ? tp.color + "30" : P.border}`,
+            backgroundColor: tp.info?.hasKey ? tp.color + "05" : P.card,
+            marginBottom: 10,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 16 }}>{tp.icon}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{tp.name}</span>
+              {tp.info?.hasKey && (
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto" }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: tp.color }} />
+                  <span style={{ fontSize: 10, color: tp.color, fontWeight: 600, fontFamily: "'JetBrains Mono', var(--font-mono), monospace" }}>
+                    {tp.info.maskedKey}
+                  </span>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/user/api-key?provider=${tp.id}`, { method: "DELETE" });
+                        if (res.ok) { tp.setInfo(null); setToolMessage({ type: "success", text: `${tp.name} key removed` }); }
+                      } catch { setToolMessage({ type: "error", text: "Failed to remove" }); }
+                    }}
+                    style={{
+                      padding: "2px 8px", borderRadius: 5, marginLeft: 8,
+                      border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2",
+                      color: "#DC2626", fontSize: 10, fontWeight: 600,
+                      cursor: "pointer", fontFamily: "inherit",
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+            <div style={{ fontSize: 11, color: P.textTer, marginBottom: tp.info?.hasKey ? 0 : 8, lineHeight: 1.4 }}>
+              {tp.description}
+            </div>
+            {!tp.info?.hasKey && (
+              <>
+                <div style={{ fontSize: 10.5, color: P.textTer, marginBottom: 6 }}>
+                  Powers: <span style={{ color: P.textSec, fontWeight: 500 }}>{tp.agents}</span>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <input
+                    type="password"
+                    value={toolKeyInputs[tp.id] || ""}
+                    onChange={(e) => setToolKeyInputs(prev => ({ ...prev, [tp.id]: e.target.value }))}
+                    placeholder={tp.placeholder}
+                    style={{
+                      flex: 1, padding: "8px 12px", borderRadius: 8,
+                      border: `1.5px solid ${P.border}`, fontSize: 12, color: P.text,
+                      fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                      outline: "none", backgroundColor: P.card,
+                    }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = tp.color + "60"; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = P.border; }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && toolKeyInputs[tp.id]?.trim()) {
+                        handleSaveToolKey(tp.id, tp.name, tp.setInfo);
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => handleSaveToolKey(tp.id, tp.name, tp.setInfo)}
+                    disabled={toolSaving === tp.id || !toolKeyInputs[tp.id]?.trim()}
+                    style={{
+                      padding: "8px 14px", borderRadius: 8, border: "none",
+                      background: toolKeyInputs[tp.id]?.trim() ? tp.gradient : P.border,
+                      color: toolKeyInputs[tp.id]?.trim() ? "#fff" : P.textTer,
+                      fontSize: 12, fontWeight: 700, cursor: toolSaving === tp.id || !toolKeyInputs[tp.id]?.trim() ? "not-allowed" : "pointer",
+                      fontFamily: "inherit", whiteSpace: "nowrap",
+                    }}
+                  >
+                    {toolSaving === tp.id ? "..." : "Save"}
+                  </button>
+                </div>
+                <div style={{ marginTop: 6, fontSize: 10.5 }}>
+                  <a href={tp.link} target="_blank" rel="noopener noreferrer"
+                    style={{ color: tp.color, fontWeight: 600, textDecoration: "none" }}>
+                    {tp.linkText} →
+                  </a>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+
+        {toolMessage && (
+          <div style={{
+            marginTop: 8, padding: "8px 12px", borderRadius: 8,
+            backgroundColor: toolMessage.type === "success" ? "#ECFDF5" : "#FEF2F2",
+            border: `1px solid ${toolMessage.type === "success" ? "#A7F3D0" : "#FECACA"}`,
+            fontSize: 12, color: toolMessage.type === "success" ? "#065F46" : "#DC2626",
+          }}>
+            {toolMessage.type === "success" ? "✓ " : "✕ "}{toolMessage.text}
+          </div>
+        )}
       </div>
 
       {/* Status */}

@@ -1,12 +1,25 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
 import { AgentAvatar } from "@/components/agents/agent-avatar";
 import { useTask } from "@/lib/hooks/use-task";
 import { useAgents } from "@/lib/hooks/use-agents";
 import { P } from "@/lib/palette";
 import { getPipeline } from "@/lib/ai/pipelines";
+import { AGENT_OUTPUT_RENDERERS } from "@/lib/agent-ui/output-registry";
 import type { TaskWithAgent } from "@/lib/types/task";
+
+// Lazy-load output renderers
+const OUTPUT_COMPONENTS: Record<string, React.LazyExoticComponent<React.ComponentType<{ output: string; agentColor: string }>>> = {
+  FinanceOutput: lazy(() => import("@/components/agents/outputs/FinanceOutput")),
+  DataOutput: lazy(() => import("@/components/agents/outputs/DataOutput")),
+  ResearchOutput: lazy(() => import("@/components/agents/outputs/ResearchOutput")),
+  TravelOutput: lazy(() => import("@/components/agents/outputs/TravelOutput")),
+  ComparisonOutput: lazy(() => import("@/components/agents/outputs/ComparisonOutput")),
+  FitnessOutput: lazy(() => import("@/components/agents/outputs/FitnessOutput")),
+  SalesOutput: lazy(() => import("@/components/agents/outputs/SalesOutput")),
+  ArticleOutput: lazy(() => import("@/components/agents/outputs/ArticleOutput")),
+};
 
 interface TaskDetailModalProps {
   task: TaskWithAgent | null;
@@ -53,6 +66,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   if (!task || !open) return null;
 
   const agent = task.agent;
+  const fullAgent = agent ? agents.find((a) => a.id === agent.id) : null;
   const isReview = task.status === "review";
   const isWorking = task.status === "working";
   const isTodo = task.status === "todo";
@@ -957,7 +971,18 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
                     borderRadius: "16px 16px 0 0",
                   }} />
                 )}
-                {renderMarkdown(task.output)}
+                {(() => {
+                  const rendererName = fullAgent?.slug ? AGENT_OUTPUT_RENDERERS[fullAgent.slug] : undefined;
+                  const OutputComponent = rendererName ? OUTPUT_COMPONENTS[rendererName] : undefined;
+                  if (OutputComponent && task.output) {
+                    return (
+                      <Suspense fallback={<div style={{ padding: 20, color: P.textTer, fontSize: 13 }}>Loading...</div>}>
+                        <OutputComponent output={task.output} agentColor={agent?.color || P.indigo} />
+                      </Suspense>
+                    );
+                  }
+                  return renderMarkdown(task.output);
+                })()}
               </div>
             </div>
           )}

@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { AgentAvatar } from "@/components/agents/agent-avatar";
+import { AgentInputForm } from "@/components/agents/agent-input-form";
 import { suggestAgents } from "@/lib/utils/agent-suggest";
+import { AGENT_INPUT_CONFIGS, serializeAgentInput, generateTaskTitle } from "@/lib/agent-ui/input-registry";
 import { P } from "@/lib/palette";
 import type { Agent } from "@/lib/types/agent";
 
@@ -137,9 +139,16 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
   const [transcribing, setTranscribing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const [agentFormValues, setAgentFormValues] = useState<Record<string, unknown>>({});
 
   // Smart agent suggestions based on what the user types
   const suggestions = useMemo(() => suggestAgents(value, agents), [value, agents]);
+
+  // Agent-specific input config (when exactly 1 agent is selected)
+  const activeAgentSlug = selectedAgentIds.length === 1
+    ? agents.find((a) => a.id === selectedAgentIds[0])?.slug
+    : undefined;
+  const agentInputConfig = activeAgentSlug ? AGENT_INPUT_CONFIGS[activeAgentSlug] : undefined;
 
   useEffect(() => {
     if (open) {
@@ -152,6 +161,7 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
       setUploadedFile(null);
       setRecording(false);
       setTranscribing(false);
+      setAgentFormValues({});
     }
   }, [open, preSelectedAgentId]);
 
@@ -257,15 +267,34 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
   function stopRecording() { mediaRecorderRef.current?.stop(); setRecording(false); }
 
   function handleSubmit(title?: string) {
-    const text = (title || value).trim();
-    if (!text) return;
-    const fileContent = uploadedFile?.textContent
+    // If agent-specific form is active, use form values for title and description
+    let text = (title || value).trim();
+    let fileContent = uploadedFile?.textContent
       ? `[Attached: ${uploadedFile.filename}]\n${uploadedFile.textContent}`
       : undefined;
+
+    if (agentInputConfig && activeAgentSlug && Object.keys(agentFormValues).length > 0) {
+      // Auto-generate title from form values if user didn't type one
+      if (!text) {
+        text = generateTaskTitle(activeAgentSlug, agentFormValues);
+      }
+      // Serialize form values as structured description
+      const formDesc = serializeAgentInput(agentFormValues);
+      // Merge with any file content from the agent form's file field
+      const formFile = agentFormValues.file as { filename: string; textContent: string } | null;
+      if (formFile?.textContent) {
+        fileContent = (fileContent ? fileContent + "\n\n" : "") + `[Attached: ${formFile.filename}]\n${formFile.textContent}`;
+      }
+      // Append serialized form data to any existing file content
+      fileContent = (fileContent ? fileContent + "\n\n" : "") + formDesc;
+    }
+
+    if (!text) return;
     onSubmit(text, selectedAgentIds.length > 0 ? selectedAgentIds : undefined, fileContent);
     setValue("");
     setSelectedAgentIds([]);
     setUploadedFile(null);
+    setAgentFormValues({});
     onClose();
   }
 
@@ -673,6 +702,45 @@ export function CreateTaskModal({ open, onClose, onSubmit, agents, preSelectedAg
                   : `${selectedAgents.map((a) => a.name).join(" → ")} — each agent builds on the previous output`
                 }
               </div>
+            </div>
+          )}
+
+          {/* Agent-specific input form */}
+          {agentInputConfig && selectedAgents.length === 1 && (
+            <div style={{
+              marginBottom: 20, padding: "18px 20px", borderRadius: 14,
+              backgroundColor: P.card,
+              border: `1.5px solid ${selectedAgents[0].color}20`,
+              animation: "fadeUp 0.3s cubic-bezier(0.22,1,0.36,1)",
+            }}>
+              <div style={{
+                fontSize: 12, fontWeight: 700, color: selectedAgents[0].color,
+                marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.04em",
+                display: "flex", alignItems: "center", gap: 6,
+              }}>
+                <span style={{ fontSize: 14 }}>{selectedAgents[0].icon}</span>
+                {selectedAgents[0].name} Details
+              </div>
+              <AgentInputForm
+                config={agentInputConfig}
+                agentColor={selectedAgents[0].color}
+                values={agentFormValues}
+                onChange={setAgentFormValues}
+              />
+              <button
+                onClick={() => handleSubmit()}
+                style={{
+                  marginTop: 16, width: "100%",
+                  padding: "10px 20px", borderRadius: 10, border: "none",
+                  background: selectedAgents[0].gradient || P.coralGrad,
+                  color: "#fff", fontSize: 14, fontWeight: 700,
+                  cursor: "pointer", fontFamily: "inherit",
+                  boxShadow: `0 4px 14px ${selectedAgents[0].color}30`,
+                  transition: "all 0.15s",
+                }}
+              >
+                Create Task
+              </button>
             </div>
           )}
 

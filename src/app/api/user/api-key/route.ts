@@ -18,7 +18,7 @@ export async function GET() {
 
   const { data } = await supabase
     .from("users")
-    .select("anthropic_api_key, gemini_api_key, openai_api_key, wispr_api_key, ai_provider")
+    .select("anthropic_api_key, gemini_api_key, openai_api_key, wispr_api_key, tavily_api_key, firecrawl_api_key, serp_api_key, ai_provider")
     .eq("id", user.id)
     .single();
 
@@ -34,6 +34,9 @@ export async function GET() {
     gemini: getKeyInfo(data?.gemini_api_key),
     anthropic: getKeyInfo(data?.anthropic_api_key),
     wispr: getKeyInfo(data?.wispr_api_key),
+    tavily: getKeyInfo(data?.tavily_api_key),
+    firecrawl: getKeyInfo(data?.firecrawl_api_key),
+    serp: getKeyInfo(data?.serp_api_key),
     provider: data?.ai_provider || "openai",
     encryption: "AES-256-GCM",
   });
@@ -55,7 +58,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "api_key is required" }, { status: 400 });
   }
 
-  if (!provider || !["openai", "gemini", "anthropic", "wispr"].includes(provider)) {
+  if (!provider || !["openai", "gemini", "anthropic", "wispr", "tavily", "firecrawl", "serp"].includes(provider)) {
     return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
   }
 
@@ -67,6 +70,12 @@ export async function POST(request: NextRequest) {
   }
   if (provider === "gemini" && !api_key.startsWith("AIza")) {
     return NextResponse.json({ error: "Invalid Gemini key. Must start with AIza" }, { status: 400 });
+  }
+  if (provider === "tavily" && !api_key.startsWith("tvly-")) {
+    return NextResponse.json({ error: "Invalid Tavily key. Must start with tvly-" }, { status: 400 });
+  }
+  if (provider === "firecrawl" && !api_key.startsWith("fc-")) {
+    return NextResponse.json({ error: "Invalid Firecrawl key. Must start with fc-" }, { status: 400 });
   }
 
   if (!isSupabaseEnabled()) {
@@ -81,13 +90,17 @@ export async function POST(request: NextRequest) {
     gemini: "gemini_api_key",
     anthropic: "anthropic_api_key",
     wispr: "wispr_api_key",
+    tavily: "tavily_api_key",
+    firecrawl: "firecrawl_api_key",
+    serp: "serp_api_key",
   };
 
   const encrypted = encryptApiKey(api_key);
 
   const updateData: Record<string, string> = { [columnMap[provider]]: encrypted };
-  // Don't change ai_provider for wispr (it's a separate service)
-  if (provider !== "wispr") updateData.ai_provider = provider;
+  // Only change ai_provider for LLM providers
+  const llmProviders = ["openai", "gemini", "anthropic"];
+  if (llmProviders.includes(provider)) updateData.ai_provider = provider;
 
   const { error } = await supabase
     .from("users")
@@ -126,6 +139,9 @@ export async function DELETE(request: NextRequest) {
     gemini: "gemini_api_key",
     anthropic: "anthropic_api_key",
     wispr: "wispr_api_key",
+    tavily: "tavily_api_key",
+    firecrawl: "firecrawl_api_key",
+    serp: "serp_api_key",
   };
 
   const { error } = await supabase
