@@ -309,15 +309,91 @@ Focus on:
 
 ---
 
+## Phase 6: MCP (Model Context Protocol) Integration ✅ IMPLEMENTED
+
+### What is MCP?
+MCP (Model Context Protocol) is a standardized protocol for AI applications to connect to external tool servers. Inspired by awesome-llm-apps patterns where agents connect to GitHub, Slack, databases, CRMs — but using the open MCP standard instead of custom integrations.
+
+### Architecture
+
+```
+User Settings → Configure MCP Servers (URL + encrypted auth token)
+                     ↓
+Agent Execution → Connect to user's MCP servers
+                     ↓
+                  Discover available tools (automatic)
+                     ↓
+                  Merge MCP tools + built-in tools
+                     ↓
+                  LLM uses all tools iteratively
+                     ↓
+                  Close MCP connections (cleanup)
+```
+
+### Implementation Files
+```
+src/lib/ai/mcp/
+  types.ts              — MCPServerConfig, MCPServerType interfaces
+  client.ts             — MCP client with security (URL validation, timeouts, tool limits)
+  storage.ts            — CRUD for user MCP configs (encrypted in Supabase)
+  suggestions.ts        — Pre-built server suggestions (GitHub, Slack, PostgreSQL, etc.)
+
+src/app/api/user/mcp-servers/
+  route.ts              — GET/POST/PATCH/DELETE API for MCP server management
+
+src/app/api/tasks/[id]/run/route.ts — Updated to merge MCP tools with built-in tools
+src/app/(app)/settings/page.tsx     — MCP Servers UI section
+```
+
+### Security Measures
+- **URL validation**: HTTPS required for remote servers, blocked dangerous URL patterns
+- **AES-256-GCM encryption**: All MCP configs (including auth tokens) encrypted at rest
+- **Connection timeout**: 10s max to connect
+- **Tool call timeout**: 30s max per individual tool call
+- **Tool count limit**: Max 50 tools per server (prevents abuse)
+- **Server count limit**: Max 20 servers per user
+- **Rate limiting**: 10 server adds per minute
+- **Proper cleanup**: MCP connections closed in `finally` block after task execution
+- **Tool name prefixing**: MCP tools prefixed with `mcp_{type}_` to avoid collisions
+
+### High-Value MCP Agent Mappings
+
+| Agent | MCP Server | What It Enables |
+|-------|-----------|-----------------|
+| Code Reviewer | GitHub | Read actual PRs, diffs, repo files |
+| Debugger | GitHub, Sentry | Pull real error logs, stack traces |
+| Sprint Planner | Jira, Linear | Read real backlogs, create tickets |
+| Project Planner | Jira, Linear, Notion | Sync with project management tools |
+| Customer Support | Zendesk, Intercom | Access real ticket history |
+| Sales Rep | Salesforce, HubSpot | Pull real CRM data |
+| Recruitment Agent | Greenhouse, Lever | Access ATS data |
+| Meeting Notes | Slack, Notion | Pull meeting context |
+| Data Analyst | PostgreSQL, Google Sheets | Query real databases |
+| Web Intel | Browserbase | Full browser automation |
+| Investment Analyst | Financial APIs | Real-time market data feeds |
+
+### Pre-built MCP Server Suggestions
+The Settings UI shows 10 pre-configured server types:
+GitHub, Slack, PostgreSQL, Google Sheets, Linear, Jira, Notion, Sentry, Browserbase, Custom
+
+Each suggestion includes:
+- Setup documentation link
+- Recommended agents that benefit
+- URL and auth placeholders
+- Auto-populated agent slug mappings
+
+---
+
 ## Priority Order
 
-| Priority | Phase | What | Why |
-|----------|-------|------|-----|
-| **P0** | Phase 1 | DuckDuckGo search | Unlocks 10+ agents for free users |
-| **P0** | Phase 2 | Agentic loops + prompts | Makes tool-using agents actually work |
-| **P1** | Phase 5 | Enhanced prompts | All 56 agents improve immediately |
-| **P2** | Phase 3 | Structured schemas | Cleaner output rendering |
-| **P3** | Phase 4 | Context chaining | Better multi-step quality |
+| Priority | Phase | What | Status |
+|----------|-------|------|--------|
+| **P0** | Phase 1 | DuckDuckGo search | ✅ Done |
+| **P0** | Phase 2 | Agentic loops + prompts | ✅ Done |
+| **P0** | Phase 6 | MCP integration | ✅ Done |
+| **P1** | Phase 5 | Enhanced prompts | Pending |
+| **P2** | Phase 3 | Structured schemas | Pending |
+| **P3** | Phase 4 | Context chaining | Pending |
 
 ---
 
@@ -331,7 +407,6 @@ Focus on:
 | **Code execution (E2B)** | Security risk in multi-tenant platform — not worth it yet |
 | **Streamlit UI** | We have a better UI already |
 | **Local LLM support (Ollama)** | Out of scope — cloud-first product |
-| **MCP protocol** | No clear use case yet — tools are sufficient |
 
 ---
 
@@ -348,3 +423,11 @@ Focus on:
 **Before:** Fact Checker asked to verify a claim → reasons from training data (possibly outdated)
 
 **After:** Fact Checker searches for the claim, finds primary sources, cross-references → verdict with linked evidence
+
+**Before (no MCP):** Code Reviewer asked to review a PR → gives generic code review advice based on pasted code
+
+**After (with MCP + GitHub):** Code Reviewer connects to GitHub MCP server → reads PR #42 diff, checks CI status, reviews changed files, finds related issues → produces contextualized review with line-specific comments
+
+**Before (no MCP):** Sprint Planner asked to plan next sprint → generates a generic sprint template
+
+**After (with MCP + Linear/Jira):** Sprint Planner connects to Linear → reads current backlog, checks velocity from past sprints, identifies blocked issues → produces a realistic sprint plan with actual ticket IDs and story points

@@ -38,6 +38,36 @@ export default function SettingsPage() {
   const [toolSaving, setToolSaving] = useState<string | null>(null);
   const [toolMessage, setToolMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // MCP Servers
+  interface MCPServer {
+    id: string;
+    name: string;
+    url: string;
+    authToken?: string;
+    agentSlugs: string[];
+    enabled: boolean;
+    serverType: string;
+    createdAt: string;
+  }
+  interface MCPSuggestion {
+    type: string;
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    urlPlaceholder: string;
+    authPlaceholder: string;
+    authRequired: boolean;
+    recommendedAgents: string[];
+    docsUrl: string;
+  }
+  const [mcpServers, setMcpServers] = useState<MCPServer[]>([]);
+  const [mcpSuggestions, setMcpSuggestions] = useState<MCPSuggestion[]>([]);
+  const [mcpAdding, setMcpAdding] = useState<string | null>(null); // server type being added
+  const [mcpForm, setMcpForm] = useState<{ name: string; url: string; authToken: string }>({ name: "", url: "", authToken: "" });
+  const [mcpSaving, setMcpSaving] = useState(false);
+  const [mcpMessage, setMcpMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   useEffect(() => {
     fetch("/api/user/api-key")
       .then((r) => r.json())
@@ -50,6 +80,15 @@ export default function SettingsPage() {
         if (data.firecrawl) setFirecrawlInfo(data.firecrawl);
         if (data.serp) setSerpInfo(data.serp);
         if (data.provider) setActiveProvider(data.provider);
+      })
+      .catch(() => {});
+
+    // Fetch MCP servers
+    fetch("/api/user/mcp-servers")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.servers) setMcpServers(data.servers);
+        if (data.suggestions) setMcpSuggestions(data.suggestions);
       })
       .catch(() => {});
   }, []);
@@ -661,6 +700,288 @@ export default function SettingsPage() {
             {toolMessage.type === "success" ? "✓ " : "✕ "}{toolMessage.text}
           </div>
         )}
+      </div>
+
+      {/* MCP Servers */}
+      <div style={{
+        padding: "22px 24px", backgroundColor: P.card, borderRadius: 16,
+        border: `1.5px solid ${P.border}`, boxShadow: P.shadow, marginBottom: 16,
+        animation: "fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.14s both",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <span style={{ fontSize: 18 }}>MCP</span>
+          <div style={{ fontSize: 16, fontWeight: 700, color: P.text }}>External Tool Servers</div>
+          <span style={{
+            fontSize: 9, fontWeight: 700, color: "#fff",
+            backgroundColor: "#8B5CF6", padding: "2px 6px", borderRadius: 4,
+          }}>
+            MCP Protocol
+          </span>
+        </div>
+        <p style={{ fontSize: 12.5, color: P.textTer, marginBottom: 16, lineHeight: 1.5 }}>
+          Connect MCP servers to give agents access to GitHub, Slack, databases, and more. Agents discover and use tools automatically.
+        </p>
+
+        {/* Connected servers */}
+        {mcpServers.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: P.textSec, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
+              Connected Servers
+            </div>
+            {mcpServers.map((server) => {
+              const suggestion = mcpSuggestions.find(s => s.type === server.serverType);
+              return (
+                <div key={server.id} style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "12px 14px", borderRadius: 12, marginBottom: 8,
+                  backgroundColor: server.enabled ? (suggestion?.color || "#6366F1") + "08" : P.sidebar,
+                  border: `1.5px solid ${server.enabled ? (suggestion?.color || "#6366F1") + "30" : P.border}`,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                      backgroundColor: (suggestion?.color || "#6366F1") + "15", color: suggestion?.color || "#6366F1",
+                      fontSize: 11, fontWeight: 800,
+                    }}>
+                      {suggestion?.icon || "MCP"}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: P.text }}>{server.name}</div>
+                      <div style={{ fontSize: 10.5, color: P.textTer, fontFamily: "'JetBrains Mono', var(--font-mono), monospace" }}>
+                        {server.url.length > 40 ? server.url.slice(0, 40) + "..." : server.url}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await fetch("/api/user/mcp-servers", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id: server.id, enabled: !server.enabled }),
+                          });
+                          setMcpServers(prev => prev.map(s => s.id === server.id ? { ...s, enabled: !s.enabled } : s));
+                        } catch { /* ignore */ }
+                      }}
+                      style={{
+                        padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
+                        border: `1px solid ${server.enabled ? "#A7F3D0" : P.border}`,
+                        backgroundColor: server.enabled ? "#ECFDF5" : P.sidebar,
+                        color: server.enabled ? "#065F46" : P.textTer,
+                        cursor: "pointer", fontFamily: "inherit",
+                      }}
+                    >
+                      {server.enabled ? "Enabled" : "Disabled"}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/user/mcp-servers?id=${server.id}`, { method: "DELETE" });
+                          if (res.ok) {
+                            setMcpServers(prev => prev.filter(s => s.id !== server.id));
+                            setMcpMessage({ type: "success", text: `${server.name} removed` });
+                          }
+                        } catch {
+                          setMcpMessage({ type: "error", text: "Failed to remove" });
+                        }
+                      }}
+                      style={{
+                        padding: "4px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
+                        border: "1px solid #FCA5A5", backgroundColor: "#FEF2F2",
+                        color: "#DC2626", cursor: "pointer", fontFamily: "inherit",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Add server form */}
+        {mcpAdding && (() => {
+          const suggestion = mcpSuggestions.find(s => s.type === mcpAdding);
+          return (
+            <div style={{
+              padding: "16px", borderRadius: 12, marginBottom: 14,
+              border: `2px solid ${(suggestion?.color || "#6366F1") + "40"}`,
+              backgroundColor: (suggestion?.color || "#6366F1") + "05",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center",
+                  backgroundColor: (suggestion?.color || "#6366F1") + "15", color: suggestion?.color || "#6366F1",
+                  fontSize: 10, fontWeight: 800,
+                }}>
+                  {suggestion?.icon || "MCP"}
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 700, color: P.text }}>Add {suggestion?.name || "Custom"} Server</span>
+                <button
+                  onClick={() => { setMcpAdding(null); setMcpForm({ name: "", url: "", authToken: "" }); }}
+                  style={{
+                    marginLeft: "auto", background: "none", border: "none",
+                    color: P.textTer, cursor: "pointer", fontSize: 16, fontFamily: "inherit",
+                  }}
+                >
+                  x
+                </button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+                <input
+                  value={mcpForm.name}
+                  onChange={(e) => setMcpForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder={`Server name (e.g., "My ${suggestion?.name || "Server"}")`}
+                  style={{
+                    padding: "10px 12px", borderRadius: 8, border: `1.5px solid ${P.border}`,
+                    fontSize: 12.5, color: P.text, outline: "none", backgroundColor: P.card,
+                    fontFamily: "inherit",
+                  }}
+                />
+                <input
+                  value={mcpForm.url}
+                  onChange={(e) => setMcpForm(prev => ({ ...prev, url: e.target.value }))}
+                  placeholder={suggestion?.urlPlaceholder || "https://your-server.com/mcp"}
+                  style={{
+                    padding: "10px 12px", borderRadius: 8, border: `1.5px solid ${P.border}`,
+                    fontSize: 12.5, color: P.text, outline: "none", backgroundColor: P.card,
+                    fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                  }}
+                />
+                <input
+                  type="password"
+                  value={mcpForm.authToken}
+                  onChange={(e) => setMcpForm(prev => ({ ...prev, authToken: e.target.value }))}
+                  placeholder={suggestion?.authPlaceholder || "Auth token (optional)"}
+                  style={{
+                    padding: "10px 12px", borderRadius: 8, border: `1.5px solid ${P.border}`,
+                    fontSize: 12.5, color: P.text, outline: "none", backgroundColor: P.card,
+                    fontFamily: "'JetBrains Mono', var(--font-mono), monospace",
+                  }}
+                />
+                {suggestion?.docsUrl && (
+                  <div style={{ fontSize: 11, color: P.textTer }}>
+                    <a href={suggestion.docsUrl} target="_blank" rel="noopener noreferrer"
+                      style={{ color: suggestion.color, fontWeight: 600, textDecoration: "none" }}>
+                      Setup docs →
+                    </a>
+                    {suggestion.recommendedAgents.length > 0 && (
+                      <span style={{ marginLeft: 12 }}>
+                        Powers: <span style={{ color: P.textSec, fontWeight: 500 }}>{suggestion.recommendedAgents.join(", ")}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
+                <button
+                  onClick={async () => {
+                    if (!mcpForm.name.trim() || !mcpForm.url.trim()) return;
+                    setMcpSaving(true);
+                    setMcpMessage(null);
+                    try {
+                      const res = await fetch("/api/user/mcp-servers", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          name: mcpForm.name.trim(),
+                          url: mcpForm.url.trim(),
+                          authToken: mcpForm.authToken.trim() || undefined,
+                          agentSlugs: suggestion?.recommendedAgents || [],
+                          serverType: mcpAdding,
+                        }),
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        setMcpServers(prev => [...prev, data.server]);
+                        setMcpAdding(null);
+                        setMcpForm({ name: "", url: "", authToken: "" });
+                        setMcpMessage({ type: "success", text: `${mcpForm.name} added and encrypted` });
+                      } else {
+                        setMcpMessage({ type: "error", text: data.error || "Failed to add server" });
+                      }
+                    } catch {
+                      setMcpMessage({ type: "error", text: "Network error" });
+                    } finally {
+                      setMcpSaving(false);
+                    }
+                  }}
+                  disabled={mcpSaving || !mcpForm.name.trim() || !mcpForm.url.trim()}
+                  style={{
+                    padding: "10px 18px", borderRadius: 8, border: "none",
+                    background: mcpForm.name.trim() && mcpForm.url.trim()
+                      ? `linear-gradient(135deg, ${suggestion?.color || "#6366F1"}, ${suggestion?.color || "#6366F1"}cc)`
+                      : P.border,
+                    color: mcpForm.name.trim() && mcpForm.url.trim() ? "#fff" : P.textTer,
+                    fontSize: 13, fontWeight: 700, cursor: mcpSaving ? "not-allowed" : "pointer",
+                    fontFamily: "inherit", opacity: mcpSaving ? 0.6 : 1,
+                  }}
+                >
+                  {mcpSaving ? "Adding..." : "Add Server"}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Server type picker */}
+        {!mcpAdding && (
+          <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8 }}>
+            {mcpSuggestions.map((s) => (
+              <button
+                key={s.type}
+                onClick={() => {
+                  setMcpAdding(s.type);
+                  setMcpForm({ name: s.name, url: "", authToken: "" });
+                  setMcpMessage(null);
+                }}
+                style={{
+                  padding: "10px 14px", borderRadius: 10, cursor: "pointer",
+                  border: `1.5px solid ${s.color}25`, backgroundColor: s.color + "08",
+                  display: "flex", alignItems: "center", gap: 8,
+                  fontFamily: "inherit",
+                }}
+              >
+                <span style={{
+                  width: 24, height: 24, borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center",
+                  backgroundColor: s.color + "18", color: s.color, fontSize: 9, fontWeight: 800,
+                }}>
+                  {s.icon}
+                </span>
+                <div style={{ textAlign: "left" as const }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: P.text }}>{s.name}</div>
+                  <div style={{ fontSize: 10, color: P.textTer, maxWidth: 150, lineHeight: 1.3 }}>
+                    {s.description.slice(0, 50)}...
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mcpMessage && (
+          <div style={{
+            marginTop: 12, padding: "8px 12px", borderRadius: 8,
+            backgroundColor: mcpMessage.type === "success" ? "#ECFDF5" : "#FEF2F2",
+            border: `1px solid ${mcpMessage.type === "success" ? "#A7F3D0" : "#FECACA"}`,
+            fontSize: 12, color: mcpMessage.type === "success" ? "#065F46" : "#DC2626",
+          }}>
+            {mcpMessage.type === "success" ? "ok " : "x "}{mcpMessage.text}
+          </div>
+        )}
+
+        {/* Security info */}
+        <div style={{
+          marginTop: 14, padding: "12px 14px", borderRadius: 12,
+          backgroundColor: P.sidebar, border: `1px solid ${P.border}`,
+        }}>
+          <div style={{ display: "flex", gap: 12, fontSize: 11, color: P.textTer, flexWrap: "wrap" as const }}>
+            <span>AES-256 encrypted</span>
+            <span>HTTPS required for remote</span>
+            <span>30s timeout per tool call</span>
+            <span>Max 20 servers</span>
+          </div>
+        </div>
       </div>
 
       {/* Status */}

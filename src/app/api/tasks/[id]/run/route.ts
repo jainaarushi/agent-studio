@@ -18,6 +18,9 @@ import { createCalculatorTool } from "@/lib/ai/tools/calculator";
 import { isSupabaseEnabled } from "@/lib/supabase/server";
 import { getTaskById, updateTaskById } from "@/lib/data/tasks";
 import { getAgentById } from "@/lib/data/agents";
+import { getUserMCPServers } from "@/lib/ai/mcp/storage";
+import { getMCPToolsForAgent, closeMCPConnections } from "@/lib/ai/mcp/client";
+import type { MCPServerConfig } from "@/lib/ai/mcp/types";
 import type { TaskStep } from "@/lib/types/task";
 import type { UserToolKeys } from "@/lib/ai/get-tool-keys";
 
@@ -134,7 +137,10 @@ export async function POST(
     }
   }
 
-  runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSlug, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey, toolKeys);
+  // Fetch user's MCP server configs
+  const mcpServers = await getUserMCPServers(user.id);
+
+  runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSlug, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey, toolKeys, mcpServers);
 
   return NextResponse.json({ status: "started" });
 }
@@ -154,6 +160,7 @@ async function runPipeline(
   provider: "openai" | "gemini" | "anthropic",
   apiKey: string,
   toolKeys: UserToolKeys,
+  mcpServers: MCPServerConfig[],
 ) {
   const startTime = Date.now();
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
@@ -170,6 +177,31 @@ async function runPipeline(
   let totalTokensIn = 0;
   let totalTokensOut = 0;
   let finalOutput = "";
+
+  // Connect to MCP servers for this agent (if any configured)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mcpTools: Record<string, any> = {};
+  let mcpClosers: Array<() => Promise<void>> = [];
+
+  if (mcpServers.length > 0) {
+    try {
+      const mcpResult = await getMCPToolsForAgent(mcpServers, agentSlug);
+      mcpTools = mcpResult.tools;
+      mcpClosers = mcpResult.closers;
+
+      if (mcpResult.connectedServers.length > 0) {
+        await persistTaskUpdate(userId, taskId, {
+          current_step: `Connected to ${mcpResult.connectedServers.join(", ")}`,
+        });
+      }
+
+      if (mcpResult.errors.length > 0) {
+        console.warn("MCP connection errors:", mcpResult.errors);
+      }
+    } catch (err) {
+      console.error("MCP setup failed (continuing without MCP):", err);
+    }
+  }
 
   // Parse file data if any step needs it
   let parsedFileData: ParsedFileData | null = null;
@@ -232,12 +264,20 @@ async function runPipeline(
           ? `Task: ${title}\n\nDetails: ${description}\n\nToday's date: ${today}`
           : `Task: ${title}\n\nToday's date: ${today}`;
 
-        const stepTools = buildToolsForStep(step, toolKeys, parsedFileData);
+        const builtInTools = buildToolsForStep(step, toolKeys, parsedFileData);
+        // Merge built-in tools with MCP tools (MCP tools available on all core steps)
+        const stepTools = { ...builtInTools, ...mcpTools };
         const hasTools = Object.keys(stepTools).length > 0;
 
-        const coreSystem = step.toolContext
+        // If MCP tools are present, add context about them
+        let coreSystem = step.toolContext
           ? systemPrompt + "\n\n" + step.toolContext
           : systemPrompt;
+
+        if (Object.keys(mcpTools).length > 0) {
+          const mcpToolNames = Object.keys(mcpTools).join(", ");
+          coreSystem += `\n\nYou also have access to external MCP tools: ${mcpToolNames}. Use them when relevant to the task.`;
+        }
 
         const result = await generateText({
           model: aiModel,
@@ -319,6 +359,11 @@ async function runPipeline(
       current_step: `Failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       output: `## Error\n\n${agentName} encountered an error.\n\n\`\`\`\n${error instanceof Error ? error.message : "Unknown error"}\n\`\`\`\n\nPlease check your API key in Settings and try again.`,
     });
+  } finally {
+    // Always close MCP connections
+    if (mcpClosers.length > 0) {
+      await closeMCPConnections(mcpClosers);
+    }
   }
 }
 
