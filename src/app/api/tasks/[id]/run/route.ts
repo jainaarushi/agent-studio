@@ -20,6 +20,7 @@ import { getTaskById, updateTaskById } from "@/lib/data/tasks";
 import { getAgentById } from "@/lib/data/agents";
 import { getUserMCPServers } from "@/lib/ai/mcp/storage";
 import { getMCPToolsForAgent, closeMCPConnections } from "@/lib/ai/mcp/client";
+import { getAgentMCPRecommendation } from "@/lib/ai/mcp/suggestions";
 import type { MCPServerConfig } from "@/lib/ai/mcp/types";
 import type { TaskStep } from "@/lib/types/task";
 import type { UserToolKeys } from "@/lib/ai/get-tool-keys";
@@ -137,12 +138,23 @@ export async function POST(
     }
   }
 
-  // Fetch user's MCP server configs
+  // Fetch user's MCP server configs and check for recommendations
   const mcpServers = await getUserMCPServers(user.id);
+  const configuredServerTypes = mcpServers.filter(s => s.enabled).map(s => s.serverType);
+  const mcpRecommendation = getAgentMCPRecommendation(agentSlug, configuredServerTypes);
 
-  runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSlug, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey, toolKeys, mcpServers);
+  runPipeline(user.id, id, taskTitle, taskDescription, agentName, agentSlug, agentSystemPrompt, pipeline, steps, aiConfig.provider, aiConfig.apiKey, toolKeys, mcpServers, mcpRecommendation?.settingsHint || null);
 
-  return NextResponse.json({ status: "started" });
+  return NextResponse.json({
+    status: "started",
+    ...(mcpRecommendation ? {
+      mcpRecommendation: {
+        message: mcpRecommendation.message,
+        serverNames: mcpRecommendation.serverNames,
+        settingsHint: mcpRecommendation.settingsHint,
+      },
+    } : {}),
+  });
 }
 
 // ── Pipeline Execution ───────────────────────────────────────
@@ -161,6 +173,7 @@ async function runPipeline(
   apiKey: string,
   toolKeys: UserToolKeys,
   mcpServers: MCPServerConfig[],
+  mcpHint: string | null,
 ) {
   const startTime = Date.now();
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
@@ -179,6 +192,11 @@ async function runPipeline(
   let finalOutput = "";
 
   // Connect to MCP servers for this agent (if any configured)
+  // If MCP is recommended but not configured, inject awareness into system prompt
+  if (mcpHint) {
+    systemPrompt += `\n\nIMPORTANT: You do NOT currently have access to external tools (like GitHub, Jira, databases, etc.) that would make your output much more useful. At the START of your response, add this notice:\n\n> **Tip:** ${mcpHint}\n\nThen do your best with the information provided, but clearly state when you're giving generic advice that would be more specific with real data access.`;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mcpTools: Record<string, any> = {};
   let mcpClosers: Array<() => Promise<void>> = [];

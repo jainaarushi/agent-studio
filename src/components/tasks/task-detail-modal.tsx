@@ -46,6 +46,7 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
   const [transcribing, setTranscribing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const [mcpBanner, setMcpBanner] = useState<{ message: string; serverNames: string[]; settingsHint: string } | null>(null);
 
   const task = fullTask || initialTask;
 
@@ -211,6 +212,13 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
         setTimeout(() => { window.location.href = "/settings"; }, 2500);
         return;
       }
+      // Check for MCP recommendation
+      try {
+        const data = await res.json();
+        if (data.mcpRecommendation) {
+          setMcpBanner(data.mcpRecommendation);
+        }
+      } catch { /* ignore parse errors */ }
       mutateTask();
       onUpdate();
     } catch (err) {
@@ -274,6 +282,13 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
         setTimeout(() => { window.location.href = "/settings"; }, 2500);
         return;
       }
+      // Check for MCP recommendation
+      try {
+        const data = await runRes.json();
+        if (data.mcpRecommendation) {
+          setMcpBanner(data.mcpRecommendation);
+        }
+      } catch { /* ignore */ }
       setFeedback("");
       setShowFeedback(false);
       mutateTask();
@@ -897,6 +912,71 @@ export function TaskDetailModal({ task: initialTask, open, onClose, onUpdate, on
               </div>
             );
           })()}
+
+          {/* MCP Recommendation Banner */}
+          {mcpBanner && !task.output && (
+            <div style={{
+              padding: "14px 18px", borderRadius: 12, marginBottom: 16,
+              background: "linear-gradient(135deg, #EEF2FF, #F5F3FF)",
+              border: "1.5px solid #C7D2FE",
+              animation: "fadeUp 0.4s cubic-bezier(0.16,1,0.3,1)",
+            }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <span style={{ fontSize: 20, lineHeight: 1 }}>MCP</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#3730A3", marginBottom: 4 }}>
+                    This agent works better with {mcpBanner.serverNames.join(" or ")}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#4338CA", lineHeight: 1.5, marginBottom: 8 }}>
+                    {mcpBanner.message}
+                  </div>
+                  <a
+                    href="/settings"
+                    style={{
+                      display: "inline-block", padding: "6px 14px", borderRadius: 7,
+                      backgroundColor: "#4F46E5", color: "#fff",
+                      fontSize: 11.5, fontWeight: 700, textDecoration: "none",
+                    }}
+                  >
+                    Add in Settings
+                  </a>
+                </div>
+                <button
+                  onClick={() => setMcpBanner(null)}
+                  style={{
+                    background: "none", border: "none", color: "#6366F1",
+                    cursor: "pointer", fontSize: 16, padding: "0 2px", fontFamily: "inherit",
+                  }}
+                >
+                  x
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* MCP banner (persistent, above output) */}
+          {mcpBanner && task.output && (
+            <div style={{
+              padding: "10px 14px", borderRadius: 10, marginBottom: 12,
+              backgroundColor: "#EEF2FF", border: "1px solid #C7D2FE",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <div style={{ fontSize: 12, color: "#4338CA" }}>
+                <strong>Tip:</strong> {mcpBanner.settingsHint}
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <a href="/settings" style={{ fontSize: 11, color: "#4F46E5", fontWeight: 700, textDecoration: "none" }}>
+                  Settings
+                </a>
+                <button
+                  onClick={() => setMcpBanner(null)}
+                  style={{ background: "none", border: "none", color: "#6366F1", cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}
+                >
+                  x
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Output — rendered as formatted markdown */}
           {task.output && (
