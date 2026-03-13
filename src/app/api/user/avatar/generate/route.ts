@@ -20,6 +20,7 @@ async function ensureBucket(supabase: Awaited<ReturnType<typeof createClient>>) 
 }
 
 export async function POST(req: Request) {
+  try {
   const user = await getAuthUser();
   if (user.isDemo) {
     return NextResponse.json({ error: "Sign in to generate avatars" }, { status: 401 });
@@ -93,34 +94,37 @@ export async function POST(req: Request) {
   let generated = 0;
   let failed = 0;
 
+  // Build URL safely (geminiKey may contain special chars)
+  const geminiUrl = new URL(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+  );
+  geminiUrl.searchParams.set("key", geminiKey);
+
   async function generateOne(category: (typeof AVATAR_PROMPTS)[number]) {
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    inlineData: {
-                      mimeType: faceType,
-                      data: faceBase64,
-                    },
+      const res = await fetch(geminiUrl.toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: faceType,
+                    data: faceBase64,
                   },
-                  { text: category.prompt },
-                ],
-              },
-            ],
-            generationConfig: {
-              responseModalities: ["IMAGE", "TEXT"],
-              imageMimeType: "image/png",
+                },
+                { text: category.prompt },
+              ],
             },
-          }),
-        },
-      );
+          ],
+          generationConfig: {
+            responseModalities: ["IMAGE", "TEXT"],
+            imageMimeType: "image/png",
+          },
+        }),
+      });
 
       if (!res.ok) {
         const err = await res.text();
@@ -210,4 +214,9 @@ export async function POST(req: Request) {
     generated,
     failed,
   });
+  } catch (err) {
+    console.error("Avatar generate route error:", err);
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
