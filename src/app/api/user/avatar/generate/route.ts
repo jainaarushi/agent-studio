@@ -113,7 +113,6 @@ export async function POST(req: Request) {
           ],
           generationConfig: {
             responseModalities: ["IMAGE", "TEXT"],
-            imageMimeType: "image/png",
           },
         }),
       });
