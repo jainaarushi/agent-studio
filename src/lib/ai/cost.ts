@@ -25,6 +25,12 @@ const IMAGE_RATES: Record<string, Record<string, number>> = {
     "512x512": 0.018,
     "256x256": 0.016,
   },
+  "gpt-image-1": {
+    "1024x1024": 0.040,
+    "1024x1536": 0.060,
+    "1536x1024": 0.060,
+    "auto": 0.040,
+  },
 };
 
 // Default to gpt-4o-mini pricing if model unknown

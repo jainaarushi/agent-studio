@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient, isSupabaseEnabled } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { P } from "@/lib/palette";
+import { AvatarSection } from "@/components/settings/avatar-section";
 
 type Provider = "openai" | "gemini" | "anthropic";
 
@@ -701,6 +702,9 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+
+      {/* AI Avatars */}
+      <AvatarSection hasGeminiKey={!!geminiInfo?.hasKey} />
 
       {/* MCP Servers */}
       <div style={{

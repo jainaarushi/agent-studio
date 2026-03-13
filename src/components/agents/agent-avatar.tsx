@@ -3,9 +3,10 @@ interface AgentAvatarProps {
   color: string;
   gradient?: string;
   size?: "sm" | "md" | "lg" | number;
+  avatarUrl?: string | null;
 }
 
-export function AgentAvatar({ icon, color, gradient, size = "md" }: AgentAvatarProps) {
+export function AgentAvatar({ icon, color, gradient, size = "md", avatarUrl }: AgentAvatarProps) {
   const s = typeof size === "number"
     ? { wh: size, radius: size > 32 ? 14 : 8, fontSize: size * 0.5 }
     : size === "sm"
@@ -13,6 +14,23 @@ export function AgentAvatar({ icon, color, gradient, size = "md" }: AgentAvatarP
       : size === "lg"
         ? { wh: 44, radius: 14, fontSize: 22 }
         : { wh: 28, radius: 8, fontSize: 14 };
+
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt=""
+        style={{
+          width: s.wh,
+          height: s.wh,
+          borderRadius: s.radius,
+          objectFit: "cover",
+          flexShrink: 0,
+          boxShadow: `0 3px 10px ${color}30`,
+        }}
+      />
+    );
+  }
 
   return (
     <div

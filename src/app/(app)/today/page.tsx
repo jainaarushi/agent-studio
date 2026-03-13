@@ -13,6 +13,8 @@ import { useAgents } from "@/lib/hooks/use-agents";
 import { useRealtimeTasks } from "@/lib/hooks/use-realtime";
 import { P } from "@/lib/palette";
 import { ChevronRight } from "lucide-react";
+import { useAvatars } from "@/lib/hooks/use-avatars";
+import { AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 
 // Canva-style: only 4 pastel colors that rotate
@@ -83,6 +85,7 @@ const AGENT_THUMBNAILS: Record<string, string> = {
 export default function TodayPage() {
   const { tasks, mutate } = useTasks("today");
   const { agents } = useAgents();
+  const { avatars: userAvatars } = useAvatars();
   const [selectedTask, setSelectedTask] = useState<TaskWithAgent | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -406,7 +409,9 @@ export default function TodayPage() {
               });
               return sorted;
             })().map((agent, i) => {
-              const thumb = AGENT_THUMBNAILS[agent.slug];
+              const catId = AGENT_CATEGORY_MAP[agent.slug];
+              const avatarUrl = catId ? userAvatars[catId] : undefined;
+              const thumb = avatarUrl || AGENT_THUMBNAILS[agent.slug];
               const pastelBg = CANVA_PASTELS[i % CANVA_PASTELS.length];
               const col = Math.floor(i / 2);
               const row = i % 2;
@@ -427,17 +432,34 @@ export default function TodayPage() {
                   }}
                 >
                   {thumb ? (
-                    /* Full image card — title is baked into the image, zoom to crop grey edges */
-                    <img
-                      src={thumb}
-                      alt={agent.name}
-                      className="agent-thumb-img"
-                      style={{
-                        width: "100%", height: "100%",
-                        objectFit: "cover", display: "block",
-                        transform: "scale(1.15)",
-                      }}
-                    />
+                    /* Full image card — user avatar or preset thumbnail */
+                    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                      <img
+                        src={thumb}
+                        alt={agent.name}
+                        className="agent-thumb-img"
+                        style={{
+                          width: "100%", height: "100%",
+                          objectFit: "cover", display: "block",
+                          transform: avatarUrl ? "scale(1)" : "scale(1.15)",
+                        }}
+                      />
+                      {avatarUrl && (
+                        <div style={{
+                          position: "absolute", bottom: 0, left: 0, right: 0,
+                          padding: "16px 10px 8px",
+                          background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)",
+                        }}>
+                          <div style={{
+                            fontSize: 11, fontWeight: 700, color: "#fff",
+                            textShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                            lineHeight: 1.2,
+                          }}>
+                            {agent.name}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     /* Fallback — pastel card with icon */
                     <div style={{

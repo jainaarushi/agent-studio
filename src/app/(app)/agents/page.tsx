@@ -7,6 +7,7 @@ import { useTasks } from "@/lib/hooks/use-tasks";
 import { AgentCreateModal } from "@/components/agents/agent-create-modal";
 import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
 import { P } from "@/lib/palette";
+import { useAvatars } from "@/lib/hooks/use-avatars";
 
 const PASTEL_MAP: Record<string, { bg: string; shape1: string; shape2: string; shape3: string }> = {
   "#6366F1": { bg: "#EDE9FE", shape1: "#DDD6FE", shape2: "#C4B5FD60", shape3: "#A78BFA40" },
@@ -48,6 +49,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 export default function AgentsPage() {
   const { agents, mutate } = useAgents();
   const { tasks } = useTasks();
+  const { avatars } = useAvatars();
   const [showCreate, setShowCreate] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -243,6 +245,7 @@ export default function AgentsPage() {
                 setHoveredId={setHoveredId}
                 onDelete={handleDelete}
                 router={router}
+                avatars={avatars}
               />
             ))}
           </div>
@@ -301,6 +304,7 @@ export default function AgentsPage() {
                   setHoveredId={setHoveredId}
                   onDelete={handleDelete}
                   router={router}
+                  avatars={avatars}
                 />
               ))}
             </div>
@@ -355,6 +359,7 @@ export default function AgentsPage() {
                 setHoveredId={setHoveredId}
                 onDelete={handleDelete}
                 router={router}
+                avatars={avatars}
               />
             ))}
             {/* Create Agent card */}
@@ -427,9 +432,10 @@ interface AgentCardProps {
   onDelete: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router: any;
+  avatars?: Record<string, string>;
 }
 
-function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, router }: AgentCardProps) {
+function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, router, avatars }: AgentCardProps) {
   const done = tasks.filter((t: { agent_id: string; status: string }) => t.agent_id === agent.id && t.status === "done").length;
   const pastel = getPastel(agent.color);
   const isHovered = hoveredId === agent.id;
@@ -437,6 +443,7 @@ function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, rou
   const slug = agent.slug || "";
   const catId = AGENT_CATEGORY_MAP[slug];
   const category = catId ? AGENT_CATEGORIES.find(c => c.id === catId) : null;
+  const avatarUrl = catId && avatars ? avatars[catId] : undefined;
 
   return (
     <div
@@ -498,22 +505,40 @@ function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, rou
         </button>
       )}
 
-      {/* Icon */}
-      <div style={{
-        width: 52, height: 52, borderRadius: 15,
-        background: agent.gradient,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 24,
-        boxShadow: isHovered
-          ? `0 14px 28px ${agent.color}35, 0 4px 10px ${agent.color}20`
-          : `0 6px 16px ${agent.color}20`,
-        transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
-        animation: isHovered ? "floatIcon 3s ease-in-out infinite" : "none",
-        marginBottom: 12,
-        position: "relative", zIndex: 2,
-      }}>
-        {agent.icon}
-      </div>
+      {/* Icon / Avatar */}
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={agent.name}
+          style={{
+            width: 52, height: 52, borderRadius: 15,
+            objectFit: "cover",
+            boxShadow: isHovered
+              ? `0 14px 28px ${agent.color}35, 0 4px 10px ${agent.color}20`
+              : `0 6px 16px ${agent.color}20`,
+            transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
+            animation: isHovered ? "floatIcon 3s ease-in-out infinite" : "none",
+            marginBottom: 12,
+            position: "relative", zIndex: 2,
+          }}
+        />
+      ) : (
+        <div style={{
+          width: 52, height: 52, borderRadius: 15,
+          background: agent.gradient,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 24,
+          boxShadow: isHovered
+            ? `0 14px 28px ${agent.color}35, 0 4px 10px ${agent.color}20`
+            : `0 6px 16px ${agent.color}20`,
+          transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
+          animation: isHovered ? "floatIcon 3s ease-in-out infinite" : "none",
+          marginBottom: 12,
+          position: "relative", zIndex: 2,
+        }}>
+          {agent.icon}
+        </div>
+      )}
 
       {/* Text */}
       <div style={{ position: "relative", zIndex: 2, flex: 1 }}>
