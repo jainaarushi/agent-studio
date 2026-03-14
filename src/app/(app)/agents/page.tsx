@@ -8,6 +8,15 @@ import { AgentCreateModal } from "@/components/agents/agent-create-modal";
 import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
 import { P } from "@/lib/palette";
 import { getAgentPersona } from "@/lib/agent-personas";
+import { Avatar3D } from "@/components/agents/avatar-3d";
+
+// Add agent slugs here as you drop .glb files into public/avatars/
+// e.g. public/avatars/fullstack-developer.glb → add "fullstack-developer"
+const AVATARS_3D = new Set<string>([
+  // "fullstack-developer",
+  // "roast-master",
+  // ... add slugs as you create models
+]);
 
 const CATEGORY_ICONS: Record<string, string> = {
   rocket: "\u{1F680}",
@@ -551,6 +560,9 @@ function ResumeCard({
   router: any;
 }) {
   const firstName = persona.humanName.split(" ")[0];
+  const slug = agent.slug || "";
+  const glbUrl = `/avatars/${slug}.glb`;
+  const hasGlb = AVATARS_3D.has(slug);
   // Light pastel background derived from accent
   const cardBg = accentColor + "0C";
   const cardBgHover = accentColor + "14";
@@ -605,23 +617,32 @@ function ResumeCard({
 
       {/* ── Body: Avatar left, Info right ── */}
       <div style={{ padding: "12px 14px 0", display: "flex", gap: 12 }}>
-        {/* Circular avatar with ring */}
+        {/* Circular avatar with gradient ring — 3D model or emoji fallback */}
         <div style={{
-          width: 64, height: 64, borderRadius: "50%",
+          width: 72, height: 72, borderRadius: "50%",
           background: `linear-gradient(135deg, ${ringColor}, ${ringColorOuter})`,
           display: "flex", alignItems: "center", justifyContent: "center",
           flexShrink: 0,
           boxShadow: `0 4px 12px ${accentColor}20`,
+          padding: 3,
         }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: "50%",
-            backgroundColor: accentColor + "15",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 30,
-            border: `2px solid ${accentColor}30`,
-          }}>
-            {persona.animal}
-          </div>
+          {hasGlb ? (
+            <Avatar3D
+              modelUrl={glbUrl}
+              size={66}
+              hovered={isHovered}
+            />
+          ) : (
+            <div style={{
+              width: 66, height: 66, borderRadius: "50%",
+              backgroundColor: accentColor + "15",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 30,
+              border: `2px solid ${accentColor}30`,
+            }}>
+              {persona.animal}
+            </div>
+          )}
         </div>
 
         {/* Name + About */}
