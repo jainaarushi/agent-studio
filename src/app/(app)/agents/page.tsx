@@ -8,13 +8,6 @@ import { AgentCreateModal } from "@/components/agents/agent-create-modal";
 import { AGENT_CATEGORIES, AGENT_CATEGORY_MAP } from "@/lib/agent-categories";
 import { P } from "@/lib/palette";
 import { getAgentPersona } from "@/lib/agent-personas";
-import { Avatar3D } from "@/components/agents/avatar-3d";
-
-// Add agent slugs here as you drop .glb files into public/avatars/
-const AVATARS_3D = new Set<string>([
-  // add slugs when you have .glb models
-]);
-
 // Map agent slugs to PNG avatar images (from split character sheets)
 // Batch 1 prompt order: Data Analyst, Music Producer(?), Software Dev, Marketing, Strategy, Fitness
 // Batch 2 prompt order: same second sheet
@@ -554,7 +547,7 @@ function AgentCard({ agent, index, tasks, hoveredId, setHoveredId, onDelete, rou
   );
 }
 
-// ── Trading Card (preset agents with persona) ────────────────
+// ── Full-bleed image card (Sintra-style) ────────────────────
 
 function ResumeCard({
   agent,
@@ -562,7 +555,6 @@ function ResumeCard({
   index,
   isHovered,
   accentColor,
-  category,
   setHoveredId,
   router,
 }: {
@@ -577,16 +569,8 @@ function ResumeCard({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   router: any;
 }) {
-  const firstName = persona.humanName.split(" ")[0];
   const slug = agent.slug || "";
-  const glbUrl = `/avatars/${slug}.glb`;
-  const hasGlb = AVATARS_3D.has(slug);
   const avatarImg = AVATAR_IMAGES[slug] || null;
-  // Light pastel background derived from accent
-  const cardBg = accentColor + "0C";
-  const cardBgHover = accentColor + "14";
-  const ringColor = accentColor + "50";
-  const ringColorOuter = accentColor + "25";
 
   return (
     <div
@@ -595,163 +579,64 @@ function ResumeCard({
       onMouseLeave={() => setHoveredId(null)}
       style={{
         position: "relative",
-        backgroundColor: isHovered ? cardBgHover : cardBg,
-        borderRadius: 20, cursor: "pointer",
-        overflow: "hidden", minHeight: 220,
-        display: "flex", flexDirection: "column",
-        border: `2px solid ${accentColor}20`,
+        borderRadius: 16, cursor: "pointer",
+        overflow: "hidden",
+        aspectRatio: "3 / 4",
         animation: `popIn 0.5s cubic-bezier(0.16,1,0.3,1) ${index * 0.04}s both`,
         transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
-        transform: isHovered ? "translateY(-6px)" : "translateY(0)",
+        transform: isHovered ? "translateY(-6px) scale(1.02)" : "translateY(0) scale(1)",
         boxShadow: isHovered
-          ? `0 20px 40px ${accentColor}18, 0 8px 16px ${accentColor}10`
-          : `0 2px 8px ${accentColor}08`,
+          ? `0 20px 40px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.1)`
+          : `0 2px 8px rgba(0,0,0,0.06)`,
+        backgroundColor: accentColor + "20",
       }}
     >
-      {/* ── Title Banner ── */}
-      <div style={{
-        background: `linear-gradient(135deg, ${accentColor}DD, ${accentColor}AA)`,
-        padding: "8px 14px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-      }}>
-        <span style={{
-          fontSize: 11, fontWeight: 900, color: "#fff",
-          letterSpacing: "0.06em", textTransform: "uppercase" as const,
-          textShadow: "0 1px 2px rgba(0,0,0,0.15)",
-        }}>
-          {persona.title.length > 22 ? persona.title.slice(0, 22) + "..." : persona.title}
-        </span>
-        {category && (
-          <span style={{
-            fontSize: 8, fontWeight: 800, color: "#fff",
-            backgroundColor: "rgba(255,255,255,0.25)",
-            padding: "2px 6px", borderRadius: 4,
-            textTransform: "uppercase" as const,
-            letterSpacing: "0.04em",
-          }}>
-            {category.name.split(" ")[0]}
-          </span>
-        )}
-      </div>
-
-      {/* ── Body: Avatar left, Info right ── */}
-      <div style={{ padding: "12px 14px 0", display: "flex", gap: 12 }}>
-        {/* Circular avatar with gradient ring — 3D model or emoji fallback */}
+      {/* Full-bleed image */}
+      {avatarImg ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={avatarImg}
+          alt={agent.name}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%", height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
         <div style={{
-          width: 72, height: 72, borderRadius: "50%",
-          background: `linear-gradient(135deg, ${ringColor}, ${ringColorOuter})`,
+          position: "absolute",
+          inset: 0,
+          background: `linear-gradient(160deg, ${accentColor}30, ${accentColor}10)`,
           display: "flex", alignItems: "center", justifyContent: "center",
-          flexShrink: 0,
-          boxShadow: `0 4px 12px ${accentColor}20`,
-          padding: 3,
+          fontSize: 64,
         }}>
-          {hasGlb ? (
-            <Avatar3D
-              modelUrl={glbUrl}
-              size={66}
-              hovered={isHovered}
-            />
-          ) : avatarImg ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={avatarImg}
-              alt={persona.humanName}
-              style={{
-                width: 66, height: 66, borderRadius: "50%",
-                objectFit: "cover",
-                border: `2px solid ${accentColor}30`,
-                backgroundColor: accentColor + "10",
-              }}
-            />
-          ) : (
-            <div style={{
-              width: 66, height: 66, borderRadius: "50%",
-              backgroundColor: accentColor + "15",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 30,
-              border: `2px solid ${accentColor}30`,
-            }}>
-              {persona.animal}
-            </div>
-          )}
+          {persona.animal}
         </div>
+      )}
 
-        {/* Name + About */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 14.5, fontWeight: 900, color: P.text,
-            letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 3,
-          }}>
-            {persona.humanName}
-          </div>
-          <div style={{
-            fontSize: 10.5, color: P.textSec, lineHeight: 1.45,
-          }}>
-            <span style={{ fontWeight: 700, color: accentColor, fontSize: 9, textTransform: "uppercase" as const, letterSpacing: "0.03em" }}>About: </span>
-            {persona.about}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Skills list ── */}
-      <div style={{ padding: "8px 14px 0" }}>
-        <div style={{
-          fontSize: 9, fontWeight: 800, color: accentColor,
-          textTransform: "uppercase" as const, letterSpacing: "0.05em",
-          marginBottom: 4,
-        }}>
-          Skills:
-        </div>
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" as const }}>
-          {persona.specialties.map((s) => (
-            <span key={s} style={{
-              fontSize: 9.5, fontWeight: 700,
-              color: accentColor,
-              backgroundColor: accentColor + "15",
-              padding: "3px 8px", borderRadius: 6,
-              border: `1px solid ${accentColor}20`,
-            }}>
-              {s}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Tasks label ── */}
-      <div style={{ padding: "8px 14px 0" }}>
-        <span style={{
-          fontSize: 10, fontWeight: 600, color: P.textSec,
-        }}>
-          {persona.tasksLabel} completed
-        </span>
-      </div>
-
-      {/* ── Bottom: Hire Me + Contact ── */}
+      {/* Bottom gradient overlay with name + role */}
       <div style={{
-        marginTop: "auto",
-        padding: "10px 14px 12px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        position: "absolute",
+        bottom: 0, left: 0, right: 0,
+        padding: "40px 14px 14px",
+        background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)",
       }}>
-        <span style={{
-          fontSize: 12, fontWeight: 900, color: accentColor,
-          letterSpacing: "-0.01em",
-          opacity: isHovered ? 1 : 0.7,
-          transition: "opacity 0.3s",
+        <div style={{
+          fontSize: 16, fontWeight: 800, color: "#fff",
+          letterSpacing: "-0.02em", lineHeight: 1.2,
+          textShadow: "0 1px 3px rgba(0,0,0,0.3)",
         }}>
-          HIRE ME!
-        </span>
-        <span style={{
-          fontSize: 10, fontWeight: 700,
-          color: "#fff",
-          backgroundColor: isHovered
-            ? accentColor
-            : accentColor + "90",
-          padding: "4px 12px", borderRadius: 8,
-          transition: "all 0.3s",
-          boxShadow: isHovered ? `0 3px 10px ${accentColor}30` : "none",
+          {agent.name}
+        </div>
+        <div style={{
+          fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.8)",
+          marginTop: 2,
+          textShadow: "0 1px 2px rgba(0,0,0,0.3)",
         }}>
-          Hire {firstName} &rarr;
-        </span>
+          {agent.description}
+        </div>
       </div>
     </div>
   );
