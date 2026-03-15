@@ -15,6 +15,22 @@ import { P } from "@/lib/palette";
 import { ChevronRight } from "lucide-react";
 import type { TaskWithAgent, TaskPriority } from "@/lib/types/task";
 
+// Rich color palette — cycles so adjacent cards never share colors
+const CARD_GRADIENTS = [
+  "linear-gradient(135deg, #8B5CF6, #C084FC)", // purple
+  "linear-gradient(135deg, #D97706, #FBBF24)", // gold
+  "linear-gradient(135deg, #2563EB, #60A5FA)", // blue
+  "linear-gradient(135deg, #E11D48, #FB7185)", // rose
+  "linear-gradient(135deg, #0891B2, #22D3EE)", // teal
+  "linear-gradient(135deg, #EA580C, #FB923C)", // orange
+  "linear-gradient(135deg, #7C3AED, #A78BFA)", // violet
+  "linear-gradient(135deg, #059669, #34D399)", // emerald
+  "linear-gradient(135deg, #BE185D, #F472B6)", // pink
+  "linear-gradient(135deg, #1D4ED8, #93C5FD)", // sky
+  "linear-gradient(135deg, #B45309, #FCD34D)", // amber
+  "linear-gradient(135deg, #6D28D9, #C4B5FD)", // indigo
+];
+
 
 export default function TodayPage() {
   const { tasks, mutate } = useTasks("today");
@@ -332,7 +348,7 @@ export default function TodayPage() {
               display: "grid",
               gridTemplateRows: "1fr",
               gridAutoFlow: "column",
-              gridAutoColumns: "140px",
+              gridAutoColumns: "155px",
               gap: 8,
               overflowX: "auto",
               paddingLeft: 24,
@@ -358,19 +374,20 @@ export default function TodayPage() {
               return sorted;
             })().map((agent, i) => {
               const delay = i * 0.04;
+              const bg = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
               return (
                 <div
                   key={agent.id}
                   className="agent-card"
                   onClick={() => setPreviewAgent(agent)}
                   style={{
-                    borderRadius: 14, cursor: "pointer",
+                    borderRadius: 22, cursor: "pointer",
                     overflow: "hidden",
                     scrollSnapAlign: "start",
                     animation: `cardReveal 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
                     position: "relative",
-                    height: 160,
-                    background: agent.gradient,
+                    height: 170,
+                    background: bg,
                   }}
                 >
                   <div style={{
@@ -378,15 +395,15 @@ export default function TodayPage() {
                     height: "100%",
                     display: "flex", flexDirection: "column",
                     justifyContent: "space-between",
-                    padding: "14px 12px 12px",
+                    padding: "16px 14px 14px",
                   }}>
                     {/* Icon */}
                     <div style={{
-                      width: 40, height: 40, borderRadius: 12,
-                      backgroundColor: "rgba(255,255,255,0.2)",
+                      width: 44, height: 44, borderRadius: 14,
+                      backgroundColor: "rgba(255,255,255,0.22)",
                       backdropFilter: "blur(8px)",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 20,
+                      fontSize: 22,
                     }}>
                       {agent.icon}
                     </div>
@@ -394,16 +411,15 @@ export default function TodayPage() {
                     {/* Name + description */}
                     <div>
                       <div style={{
-                        fontSize: 16, fontWeight: 900, color: "#fff",
-                        textShadow: "0 1px 6px rgba(0,0,0,0.25)",
-                        lineHeight: 1.15, letterSpacing: "-0.02em",
+                        fontSize: 18, fontWeight: 900, color: "#fff",
+                        textShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                        lineHeight: 1.15, letterSpacing: "-0.03em",
                         marginBottom: 3,
                       }}>
                         {agent.name}
                       </div>
                       <div style={{
-                        fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.8)",
-                        textShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                        fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.75)",
                         lineHeight: 1.3,
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const,
                       }}>
@@ -701,12 +717,15 @@ export default function TodayPage() {
                 {/* Template cards grid */}
                 <div style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                  gap: 12,
+                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                  gap: 14,
                 }}>
-                  {cat.slugs.map((slug) => {
+                  {cat.slugs.map((slug, j) => {
                     const agent = agents.find((a) => a.slug === slug);
                     if (!agent) return null;
+                    // Offset by category index so adjacent categories don't start on same color
+                    const catOffset = TEMPLATE_CATEGORIES.indexOf(cat) * 3;
+                    const bg = CARD_GRADIENTS[(j + catOffset) % CARD_GRADIENTS.length];
                     return (
                       <div
                         key={slug}
@@ -717,23 +736,23 @@ export default function TodayPage() {
                         }}
                         style={{
                           position: "relative",
-                          borderRadius: 16,
-                          height: 185,
+                          borderRadius: 22,
+                          height: 200,
                           cursor: "pointer",
                           overflow: "hidden",
-                          background: agent.gradient || cat.gradient,
+                          background: bg,
                           transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
-                          boxShadow: `0 2px 8px ${cat.color}20`,
+                          boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
                         }}
                         onMouseEnter={(e) => {
                           const el = e.currentTarget;
                           el.style.transform = "translateY(-4px) scale(1.02)";
-                          el.style.boxShadow = `0 16px 40px ${cat.color}30, 0 4px 12px ${cat.color}20`;
+                          el.style.boxShadow = "0 20px 50px rgba(0,0,0,0.18)";
                         }}
                         onMouseLeave={(e) => {
                           const el = e.currentTarget;
                           el.style.transform = "translateY(0) scale(1)";
-                          el.style.boxShadow = `0 2px 8px ${cat.color}20`;
+                          el.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)";
                         }}
                       >
                         <div style={{
@@ -741,15 +760,15 @@ export default function TodayPage() {
                           height: "100%",
                           display: "flex", flexDirection: "column",
                           justifyContent: "space-between",
-                          padding: "16px 16px 14px",
+                          padding: "20px 20px 18px",
                         }}>
                           {/* Icon */}
                           <div style={{
-                            width: 42, height: 42, borderRadius: 12,
-                            backgroundColor: "rgba(255,255,255,0.2)",
+                            width: 48, height: 48, borderRadius: 16,
+                            backgroundColor: "rgba(255,255,255,0.22)",
                             backdropFilter: "blur(8px)",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 21,
+                            fontSize: 24,
                           }}>
                             {agent.icon}
                           </div>
@@ -757,26 +776,24 @@ export default function TodayPage() {
                           {/* Name + tagline + description */}
                           <div>
                             <div style={{
-                              fontSize: 17, fontWeight: 900, color: "#fff",
-                              textShadow: "0 1px 6px rgba(0,0,0,0.25)",
-                              lineHeight: 1.15, letterSpacing: "-0.02em",
-                              marginBottom: 2,
+                              fontSize: 20, fontWeight: 900, color: "#fff",
+                              textShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                              lineHeight: 1.15, letterSpacing: "-0.03em",
+                              marginBottom: 3,
                             }}>
                               {agent.name}
                             </div>
                             <div style={{
-                              fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.95)",
-                              textShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                              fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.9)",
                               letterSpacing: "0.02em",
                               textTransform: "uppercase" as const,
-                              marginBottom: 3,
+                              marginBottom: 4,
                             }}>
                               {agent.description}
                             </div>
                             <div style={{
-                              fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.75)",
-                              textShadow: "0 1px 3px rgba(0,0,0,0.15)",
-                              lineHeight: 1.35,
+                              fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.72)",
+                              lineHeight: 1.4,
                               display: "-webkit-box",
                               WebkitLineClamp: 2,
                               WebkitBoxOrient: "vertical" as const,
