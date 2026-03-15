@@ -718,7 +718,7 @@ export default function TodayPage() {
                         style={{
                           position: "relative",
                           borderRadius: 16,
-                          height: 160,
+                          height: 185,
                           cursor: "pointer",
                           overflow: "hidden",
                           background: agent.gradient || cat.gradient,
@@ -754,18 +754,27 @@ export default function TodayPage() {
                             {agent.icon}
                           </div>
 
-                          {/* Name + description */}
+                          {/* Name + tagline + description */}
                           <div>
                             <div style={{
                               fontSize: 17, fontWeight: 900, color: "#fff",
                               textShadow: "0 1px 6px rgba(0,0,0,0.25)",
                               lineHeight: 1.15, letterSpacing: "-0.02em",
-                              marginBottom: 4,
+                              marginBottom: 2,
                             }}>
                               {agent.name}
                             </div>
                             <div style={{
-                              fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.82)",
+                              fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.95)",
+                              textShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                              letterSpacing: "0.02em",
+                              textTransform: "uppercase" as const,
+                              marginBottom: 3,
+                            }}>
+                              {agent.description}
+                            </div>
+                            <div style={{
+                              fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.75)",
                               textShadow: "0 1px 3px rgba(0,0,0,0.15)",
                               lineHeight: 1.35,
                               display: "-webkit-box",
@@ -773,7 +782,7 @@ export default function TodayPage() {
                               WebkitBoxOrient: "vertical" as const,
                               overflow: "hidden",
                             }}>
-                              {agent.long_description || agent.description}
+                              {agent.long_description || ""}
                             </div>
                           </div>
                         </div>
