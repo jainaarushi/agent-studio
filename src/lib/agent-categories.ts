@@ -90,9 +90,6 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "debugger": "product",
   "sprint-planner": "product",
   "project-planner": "product",
-  "home-renovation": "product",
-  "game-design": "product",
-  "ui-ux-feedback": "product",
   "devops-agent": "product",
 
   // Research & Intelligence
@@ -113,7 +110,6 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "sales-rep": "sales",
   "investment-analyst": "sales",
   "personal-finance": "sales",
-  "real-estate-analyst": "sales",
   "pricing-strategist": "sales",
   "proposal-writer": "sales",
 
@@ -125,7 +121,6 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "technical-writer": "marketing",
   "editor": "marketing",
   "email-drafter": "marketing",
-  "meme-caption": "marketing",
   "seo-agent": "marketing",
   "social-media": "marketing",
   "ad-copy": "marketing",
@@ -139,35 +134,16 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   "recruitment-agent": "operations",
   "legal-advisor": "operations",
   "cover-letter": "operations",
-  "speech-trainer": "operations",
-  "ecommerce-agent": "operations",
-  "teaching-agent": "operations",
 
   // Health & Lifestyle
   "fitness-coach": "lifestyle",
   "mental-wellbeing": "lifestyle",
   "recipe-planner": "lifestyle",
   "travel-planner": "lifestyle",
-  "life-coach": "lifestyle",
-  "baby-name": "lifestyle",
 
   // Creative & Fun
   "roast-master": "creative",
-  "dream-interpreter": "creative",
-  "villain-origin": "creative",
-  "fortune-teller": "creative",
-  "rap-battle": "creative",
-  "alien-anthropologist": "creative",
-  "toxic-trait": "creative",
-  "dating-profile": "creative",
-  "movie-plot": "creative",
   "song-lyrics": "creative",
-  "bedtime-story": "creative",
-  "excuse-generator": "creative",
-  "apology-writer": "creative",
-  "future-coach": "creative",
-  "debate-champion": "creative",
-  "music-generator": "creative",
 };
 
 export function getAgentCategory(slug: string): AgentCategory {

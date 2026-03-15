@@ -23,27 +23,12 @@ const CANVA_PASTELS = ["#F5D5E0", "#E8D5F5", "#F5E6D5", "#FFF5CC"];
 
 
 const AGENT_THUMBNAILS: Record<string, string> = {
-  // Fun agents
+  // Creative
   "roast-master": "/agents/roast-master.png",
-  "dream-interpreter": "/agents/dream-interpreter.png",
-  "startup-idea-gen": "/agents/startup-idea-gen.png",
-  "villain-origin": "/agents/villain-origin.png",
-  "fortune-teller": "/agents/fortune-teller.png",
-  "rap-battle": "/agents/rap-battle.png",
-  "alien-anthropologist": "/agents/alien-anthropologist.png",
-  "toxic-trait": "/agents/toxic-trait.png",
-  "dating-profile": "/agents/dating-profile.png",
-  "meme-caption": "/agents/meme-caption.png",
-  "movie-plot": "/agents/movie-plot.png",
   "song-lyrics": "/agents/song-lyrics.png",
-  "bedtime-story": "/agents/bedtime-story.png",
   "linkedin-post": "/agents/linkedin-post.png",
   "cover-letter": "/agents/cover-letter.png",
-  "excuse-generator": "/agents/excuse-generator.png",
-  "apology-writer": "/agents/apology-writer.png",
-  "future-coach": "/agents/future-coach.png",
-  "debate-champion": "/agents/debate-champion.png",
-  "baby-name": "/agents/baby-name.png",
+  "startup-idea-gen": "/agents/startup-idea-gen.png",
   // Professional agents
   "product-launch": "/agents/product-launch.png",
   "deep-research": "/agents/deep-research.png",
@@ -72,10 +57,8 @@ const AGENT_THUMBNAILS: Record<string, string> = {
   "meeting-notes": "/agents/meeting-notes.png",
   "decision-helper": "/agents/decision-helper.png",
   "recipe-planner": "/agents/recipe-planner.png",
-  "home-renovation": "/agents/home-renovation.png",
   "ux-designer": "/agents/ux-designer.png",
   "journalist": "/agents/journalist.png",
-  "speech-trainer": "/agents/speech-trainer.png",
   "customer-support": "/agents/customer-support.png",
   "strategy-advisor": "/agents/strategy_advisor.png",
   "travel-planner": "/agents/Travel_planner.png",

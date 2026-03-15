@@ -232,15 +232,6 @@ export const AGENT_PIPELINES: Record<string, PipelineStep[]> = {
     { description: "Finalizing package", duration: 800 },
   ],
 
-  // Real Estate Analyst
-  real_estate: [
-    { description: "Analyzing property details", duration: 1000 },
-    { description: "Researching market data", duration: 0, isCore: true, tools: ["web-search", "calculator"], maxToolSteps: 10, toolContext: "You are a real estate market researcher. Search thoroughly:\n1. Search for local market trends and average home prices in the area\n2. Search for comparable properties and recent sales\n3. Search for neighborhood info (schools, safety, amenities, walkability)\n4. Search for future development plans or zoning changes\n5. Use the calculator for financial metrics (ROI, cap rate, mortgage payments, cash-on-cash return)\nGet specific addresses, prices, and data points." },
-    { description: "Comparing alternatives", duration: 1500 },
-    { description: "Building real estate analysis", duration: 0, isCore2: true, core2Prompt: "You are a real estate investment analyst. Using the research below, create a property analysis with:\n1. Property Overview\n2. Market Analysis (trends, avg prices)\n3. Comparable Properties Table\n4. Neighborhood Scorecard (schools, safety, amenities — rated 1-10)\n5. Financial Analysis (ROI, cap rate, cash flow)\n6. Risk Factors\n7. Negotiation Strategy\n8. Recommendation: Buy / Pass / Negotiate\n\nUse tables for comparisons.\n\nMarket research:\n\n" },
-    { description: "Finalizing analysis", duration: 800 },
-  ],
-
   // ── Tier 2: Agents upgraded with free web search ────────────
 
   // Fact Checker — search to verify claims
@@ -326,14 +317,6 @@ export const AGENT_PIPELINES: Record<string, PipelineStep[]> = {
     { description: "Finalizing report", duration: 800 },
   ],
 
-  // eCommerce — store optimization
-  ecommerce: [
-    { description: "Analyzing your store and products", duration: 1000 },
-    { description: "Researching competitors and market trends", duration: 0, isCore: true, tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "You are an eCommerce expert. Research:\n1. Search for competitor stores and their pricing strategies\n2. Search for industry benchmarks (conversion rates, AOV, cart abandonment)\n3. Search for trending products and market opportunities\n4. Scrape 1-2 competitor product pages for comparison\n5. Search for CRO best practices for eCommerce\nGather real pricing and benchmark data." },
-    { description: "Optimizing conversion funnel", duration: 1500 },
-    { description: "Creating growth strategy", duration: 0, isCore2: true, core2Prompt: "You are an eCommerce strategist. Using the research below, create a comprehensive store optimization plan with:\n1. Store Audit Summary (strengths, weaknesses)\n2. Product Description Rewrites (for top 3 products)\n3. CRO Recommendations (10 specific changes with expected impact)\n4. Pricing Analysis vs competitors (table)\n5. Email Automation Sequences (cart abandonment, welcome, post-purchase)\n6. Growth Roadmap (30/60/90 day plan)\n7. KPIs to Track\n\nBe specific with real competitor data.\n\nResearch:\n\n" },
-    { description: "Finalizing plan", duration: 800 },
-  ],
 };
 
 export const DEFAULT_PIPELINE: PipelineStep[] = [
@@ -359,7 +342,6 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "competitor-intel": "competitor_intel",
   "legal-advisor": "legal",
   "recruitment-agent": "recruitment",
-  "real-estate-analyst": "real_estate",
   // Tier 2 agents → new search-enhanced pipelines
   "fact-checker": "fact_checker",
   "startup-trends": "startup_trends",
@@ -396,13 +378,7 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "market-sizing": "market_sizing",
   "pricing-strategist": "strategist",
   "proposal-writer": "catalyst",
-  "ecommerce-agent": "ecommerce",
-  "teaching-agent": "atlas",
-  "game-design": "architect",
-  "ui-ux-feedback": "architect",
   "devops-agent": "architect",
-  "life-coach": "vitalis",
-  "music-generator": "atlas",
 };
 
 export function getPipeline(agentSlug: string): PipelineStep[] {

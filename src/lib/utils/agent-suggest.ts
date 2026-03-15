@@ -47,42 +47,25 @@ const KEYWORD_MAP: { keywords: string[]; slugs: string[]; weight: number }[] = [
   { keywords: ["meal plan", "recipe", "cook", "dinner", "breakfast", "lunch", "grocery", "diet", "nutrition", "calories"], slugs: ["recipe-planner"], weight: 3 },
   { keywords: ["stress", "anxiety", "mindful", "meditation", "mental health", "wellbeing", "journaling", "calm", "breathe"], slugs: ["mental-wellbeing"], weight: 3 },
 
-  // Travel & Home
+  // Travel
   { keywords: ["travel", "trip", "itinerary", "flight", "hotel", "vacation", "destination", "booking", "tour"], slugs: ["travel-planner"], weight: 3 },
-  { keywords: ["renovate", "home improvement", "remodel", "kitchen", "bathroom", "contractor", "diy", "interior"], slugs: ["home-renovation"], weight: 3 },
 
   // Design
   { keywords: ["ux", "user experience", "wireframe", "prototype", "user flow", "persona", "usability", "ui design"], slugs: ["ux-designer"], weight: 3 },
 
   // Media
   { keywords: ["news", "journalist", "article", "reporting", "interview", "story", "press"], slugs: ["journalist"], weight: 3 },
-  { keywords: ["speech", "presentation", "pitch", "public speaking", "keynote", "toast", "talk"], slugs: ["speech-trainer"], weight: 3 },
 
   // Specialized
   { keywords: ["support", "customer", "helpdesk", "complaint", "ticket", "troubleshoot", "faq"], slugs: ["customer-support"], weight: 3 },
   { keywords: ["web scrape", "extract data", "monitor website", "competitor pricing", "web intelligence", "crawl"], slugs: ["web-intel"], weight: 3 },
 
-  // Fun & Viral
+  // Fun & Creative
   { keywords: ["roast", "roast me", "burn", "comedy", "savage", "funny"], slugs: ["roast-master"], weight: 4 },
-  { keywords: ["dream", "dreamt", "nightmare", "sleep", "subconscious", "dream meaning"], slugs: ["dream-interpreter"], weight: 4 },
   { keywords: ["startup idea", "business idea", "app idea", "side project", "saas idea"], slugs: ["startup-idea-gen"], weight: 4 },
-  { keywords: ["villain", "supervillain", "origin story", "evil", "backstory"], slugs: ["villain-origin"], weight: 4 },
-  { keywords: ["dating", "dating profile", "tinder", "bumble", "hinge", "bio", "swipe"], slugs: ["dating-profile"], weight: 4 },
-  { keywords: ["rap", "bars", "freestyle", "rhyme", "verse", "hip hop", "diss"], slugs: ["rap-battle"], weight: 4 },
-  { keywords: ["bedtime story", "kids story", "fairy tale", "children", "bedtime"], slugs: ["bedtime-story"], weight: 4 },
-  { keywords: ["meme", "caption", "funny text", "meme text", "viral"], slugs: ["meme-caption"], weight: 4 },
-  { keywords: ["apology", "sorry", "apologize", "make up", "forgive"], slugs: ["apology-writer"], weight: 4 },
-  { keywords: ["excuse", "skip", "get out of", "avoid", "can't make it"], slugs: ["excuse-generator"], weight: 4 },
-  { keywords: ["fortune", "predict", "horoscope", "astrology", "zodiac", "future", "palm reading"], slugs: ["fortune-teller"], weight: 4 },
-  { keywords: ["alien", "aliens", "earth", "human behavior", "anthropology", "field report"], slugs: ["alien-anthropologist"], weight: 4 },
   { keywords: ["song", "lyrics", "write a song", "chorus", "verse", "music"], slugs: ["song-lyrics"], weight: 4 },
-  { keywords: ["toxic trait", "personality", "red flag", "toxic", "self-aware"], slugs: ["toxic-trait"], weight: 4 },
   { keywords: ["cover letter", "job application", "apply", "hiring manager", "resume"], slugs: ["cover-letter"], weight: 4 },
-  { keywords: ["movie", "film", "plot", "screenplay", "movie idea", "script"], slugs: ["movie-plot"], weight: 4 },
   { keywords: ["linkedin", "linkedin post", "thought leader", "professional post"], slugs: ["linkedin-post"], weight: 4 },
-  { keywords: ["future", "2050", "time travel", "future advice", "hindsight"], slugs: ["future-coach"], weight: 4 },
-  { keywords: ["debate", "argue", "both sides", "argument", "controversial", "opinion"], slugs: ["debate-champion"], weight: 4 },
-  { keywords: ["baby name", "name", "naming", "baby", "expecting", "pregnant"], slugs: ["baby-name"], weight: 4 },
 
   // Multi-agent combos
   { keywords: ["research and write", "research then write", "find and draft"], slugs: ["deep-research", "content-creator"], weight: 5 },
@@ -178,33 +161,16 @@ function getReasonForSlug(slug: string, matchedKeyword: string): string {
     "recipe-planner": `Can plan ${matchedKeyword} meals`,
     "mental-wellbeing": `Can help with ${matchedKeyword}`,
     "travel-planner": `Can plan ${matchedKeyword} in detail`,
-    "home-renovation": `Can plan ${matchedKeyword} projects`,
     "ux-designer": `Can design ${matchedKeyword} experiences`,
     "journalist": `Can write ${matchedKeyword} articles`,
-    "speech-trainer": `Can prepare ${matchedKeyword} delivery`,
     "customer-support": `Can handle ${matchedKeyword} issues`,
     "web-intel": `Can ${matchedKeyword} from the web`,
     "general-assistant": `Can help with ${matchedKeyword}`,
     "roast-master": `Can roast based on "${matchedKeyword}"`,
-    "dream-interpreter": `Can interpret "${matchedKeyword}" symbolism`,
     "startup-idea-gen": `Can generate ${matchedKeyword} concepts`,
-    "villain-origin": `Can create "${matchedKeyword}" backstory`,
-    "dating-profile": `Can write killer ${matchedKeyword} bios`,
-    "rap-battle": `Can drop ${matchedKeyword} bars`,
-    "bedtime-story": `Can create magical ${matchedKeyword}`,
-    "meme-caption": `Can write ${matchedKeyword} captions`,
-    "apology-writer": `Can craft the perfect ${matchedKeyword}`,
-    "excuse-generator": `Can create believable ${matchedKeyword}`,
-    "fortune-teller": `Can read your ${matchedKeyword}`,
-    "alien-anthropologist": `Can analyze "${matchedKeyword}" from space`,
     "song-lyrics": `Can write ${matchedKeyword} in any genre`,
-    "toxic-trait": `Can analyze "${matchedKeyword}" traits`,
     "cover-letter": `Can write standout ${matchedKeyword}`,
-    "movie-plot": `Can create ${matchedKeyword} plots`,
     "linkedin-post": `Can write viral ${matchedKeyword}`,
-    "future-coach": `Can give ${matchedKeyword} advice`,
-    "debate-champion": `Can ${matchedKeyword} both sides`,
-    "baby-name": `Can suggest perfect ${matchedKeyword}`,
   };
   return reasons[slug] || `Best match for "${matchedKeyword}"`;
 }

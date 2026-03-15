@@ -256,20 +256,6 @@ export const AGENT_INPUT_CONFIGS: Record<string, AgentInputConfig> = {
     ],
   },
 
-  "real-estate-analyst": {
-    fields: [
-      { id: "property", type: "textarea", label: "Property Details", placeholder: "Address or description. Include price, sqft, bedrooms, etc.", required: true, fullWidth: true },
-      { id: "purpose", type: "radio", label: "Purpose", required: true, options: [
-        { value: "buy-primary", label: "Buy (Primary Residence)" },
-        { value: "buy-investment", label: "Buy (Investment)" },
-        { value: "sell", label: "Sell" },
-        { value: "rent", label: "Evaluate Rental" },
-      ] },
-      { id: "budget", type: "text", label: "Budget / Asking Price", placeholder: "e.g., $500,000" },
-      { id: "notes", type: "textarea", label: "Additional Context", placeholder: "e.g., first-time buyer, comparing areas" },
-    ],
-  },
-
   "product-launch": {
     fields: [
       { id: "product", type: "textarea", label: "Product / Feature Description", placeholder: "Describe what you're launching. What problem does it solve?", required: true, fullWidth: true },
@@ -339,8 +325,6 @@ export function generateTaskTitle(slug: string, values: Record<string, unknown>)
       return ((values.question as string) || "Legal analysis").slice(0, 80);
     case "recruitment-agent":
       return `Recruit: ${values.role || "open role"}`;
-    case "real-estate-analyst":
-      return ((values.property as string) || "Property analysis").slice(0, 60);
     case "product-launch":
       return ((values.product as string) || "Product launch plan").slice(0, 80);
     default:

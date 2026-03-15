@@ -29,7 +29,6 @@ export const AGENT_ENHANCED_TOOL_KEYS: Record<string, string[]> = {
   "travel-planner": ["tavily"],
   "legal-advisor": ["tavily"],
   "recruitment-agent": ["tavily"],
-  "real-estate-analyst": ["tavily"],
   "fact-checker": ["tavily"],
   "startup-trends": ["tavily"],
   "academic-researcher": ["tavily"],

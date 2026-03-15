@@ -21,30 +21,25 @@ const ALL_SLUGS = [
   // Product & Engineering
   "startup-idea-gen", "product-launch", "system-architect", "ux-designer",
   "fullstack-developer", "python-expert", "code-reviewer", "debugger",
-  "sprint-planner", "project-planner", "home-renovation", "game-design",
-  "ui-ux-feedback", "devops-agent",
+  "sprint-planner", "project-planner", "devops-agent",
   // Research & Intelligence
   "deep-research", "academic-researcher", "fact-checker", "startup-trends",
   "competitor-intel", "web-intel", "data-analyst", "visualization-expert",
   "strategy-advisor", "decision-helper", "vc-due-diligence", "market-sizing",
   // Sales & Revenue
-  "sales-rep", "investment-analyst", "personal-finance", "real-estate-analyst",
+  "sales-rep", "investment-analyst", "personal-finance",
   "pricing-strategist", "proposal-writer",
   // Marketing & Content
   "content-creator", "linkedin-post", "blog-to-podcast", "journalist",
-  "technical-writer", "editor", "email-drafter", "meme-caption",
+  "technical-writer", "editor", "email-drafter",
   "seo-agent", "social-media", "ad-copy", "newsletter-agent", "video-script",
   // Operations & Productivity
   "general-assistant", "meeting-notes", "customer-support", "recruitment-agent",
-  "legal-advisor", "cover-letter", "speech-trainer", "ecommerce-agent", "teaching-agent",
+  "legal-advisor", "cover-letter",
   // Health & Lifestyle
   "fitness-coach", "mental-wellbeing", "recipe-planner", "travel-planner",
-  "life-coach", "baby-name",
   // Creative & Fun
-  "roast-master", "dream-interpreter", "villain-origin", "fortune-teller",
-  "rap-battle", "alien-anthropologist", "toxic-trait", "dating-profile",
-  "movie-plot", "song-lyrics", "bedtime-story", "excuse-generator",
-  "apology-writer", "future-coach", "debate-champion", "music-generator",
+  "roast-master", "song-lyrics",
 ];
 
 // Deterministic mapping: each slug gets an avatar based on its position
