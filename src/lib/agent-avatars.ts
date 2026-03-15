@@ -40,6 +40,22 @@ const ALL_SLUGS = [
   "fitness-coach", "mental-wellbeing", "recipe-planner", "travel-planner",
   // Creative & Fun
   "roast-master", "song-lyrics",
+  // Career & Job Search
+  "job-hunter", "auto-applier", "resume-optimizer", "interview-coach", "salary-negotiator",
+  // Money & Bills
+  "subscription-killer", "bill-negotiator", "tax-deduction-finder", "credit-score-coach", "deal-spotter",
+  // Legal & Rights
+  "dispute-fighter", "benefits-finder", "lease-reviewer", "immigration-helper", "small-claims-advisor",
+  // Housing & Moving
+  "apartment-scout", "moving-coordinator", "utility-optimizer", "roommate-matcher",
+  // Health & Medical
+  "medical-bill-auditor", "insurance-comparer", "symptom-researcher", "prescription-saver",
+  // Education
+  "scholarship-hunter", "college-advisor",
+  // Smart Shopping
+  "return-assistant", "car-buy-negotiator",
+  // Freelance & Side Income
+  "freelance-bid-writer", "side-hustle-matcher", "contract-reviewer",
 ];
 
 // Deterministic mapping: each slug gets an avatar based on its position

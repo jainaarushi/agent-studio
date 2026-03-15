@@ -75,6 +75,78 @@ export const AGENT_CATEGORIES: AgentCategory[] = [
     gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)",
     order: 7,
   },
+  {
+    id: "career",
+    name: "Career & Job Search",
+    tagline: "Land your dream job",
+    icon: "briefcase",
+    color: "#2563EB",
+    gradient: "linear-gradient(135deg, #2563EB, #3B82F6)",
+    order: 8,
+  },
+  {
+    id: "finance_personal",
+    name: "Money & Bills",
+    tagline: "Save more, spend smarter",
+    icon: "wallet",
+    color: "#059669",
+    gradient: "linear-gradient(135deg, #059669, #34D399)",
+    order: 9,
+  },
+  {
+    id: "legal_personal",
+    name: "Legal & Rights",
+    tagline: "Know your rights",
+    icon: "shield",
+    color: "#7C3AED",
+    gradient: "linear-gradient(135deg, #7C3AED, #A78BFA)",
+    order: 10,
+  },
+  {
+    id: "housing",
+    name: "Housing & Moving",
+    tagline: "Find your perfect home",
+    icon: "home",
+    color: "#D97706",
+    gradient: "linear-gradient(135deg, #D97706, #FBBF24)",
+    order: 11,
+  },
+  {
+    id: "health_personal",
+    name: "Health & Medical",
+    tagline: "Navigate healthcare smarter",
+    icon: "stethoscope",
+    color: "#DC2626",
+    gradient: "linear-gradient(135deg, #DC2626, #F87171)",
+    order: 12,
+  },
+  {
+    id: "education",
+    name: "Education & Learning",
+    tagline: "Your academic advantage",
+    icon: "graduation",
+    color: "#0891B2",
+    gradient: "linear-gradient(135deg, #0891B2, #22D3EE)",
+    order: 13,
+  },
+  {
+    id: "shopping",
+    name: "Smart Shopping",
+    tagline: "Shop smarter, save more",
+    icon: "tag",
+    color: "#C026D3",
+    gradient: "linear-gradient(135deg, #C026D3, #E879F9)",
+    order: 14,
+  },
+  {
+    id: "freelance",
+    name: "Freelance & Side Income",
+    tagline: "Earn on your own terms",
+    icon: "zap",
+    color: "#EA580C",
+    gradient: "linear-gradient(135deg, #EA580C, #FB923C)",
+    order: 15,
+  },
 ];
 
 // Map every agent slug to its category
@@ -144,6 +216,52 @@ export const AGENT_CATEGORY_MAP: Record<string, string> = {
   // Creative & Fun
   "roast-master": "creative",
   "song-lyrics": "creative",
+
+  // Career & Job Search
+  "job-hunter": "career",
+  "auto-applier": "career",
+  "resume-optimizer": "career",
+  "interview-coach": "career",
+  "salary-negotiator": "career",
+
+  // Money & Bills
+  "subscription-killer": "finance_personal",
+  "bill-negotiator": "finance_personal",
+  "tax-deduction-finder": "finance_personal",
+  "credit-score-coach": "finance_personal",
+  "deal-spotter": "finance_personal",
+
+  // Legal & Rights
+  "dispute-fighter": "legal_personal",
+  "benefits-finder": "legal_personal",
+  "lease-reviewer": "legal_personal",
+  "immigration-helper": "legal_personal",
+  "small-claims-advisor": "legal_personal",
+
+  // Housing & Moving
+  "apartment-scout": "housing",
+  "moving-coordinator": "housing",
+  "utility-optimizer": "housing",
+  "roommate-matcher": "housing",
+
+  // Health & Medical
+  "medical-bill-auditor": "health_personal",
+  "insurance-comparer": "health_personal",
+  "symptom-researcher": "health_personal",
+  "prescription-saver": "health_personal",
+
+  // Education
+  "scholarship-hunter": "education",
+  "college-advisor": "education",
+
+  // Smart Shopping
+  "return-assistant": "shopping",
+  "car-buy-negotiator": "shopping",
+
+  // Freelance & Side Income
+  "freelance-bid-writer": "freelance",
+  "side-hustle-matcher": "freelance",
+  "contract-reviewer": "freelance",
 };
 
 export function getAgentCategory(slug: string): AgentCategory {

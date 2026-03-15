@@ -309,6 +309,44 @@ export const AGENT_PIPELINES: Record<string, PipelineStep[]> = {
   ],
 
   // Market Sizing — data-driven analysis
+  // ── Life Utility Pipelines ──────────────────────────────────
+
+  // Research and Draft — research a topic, produce actionable report
+  life_research: [
+    { description: "Understanding your situation", duration: 1200 },
+    { description: "Searching for relevant information", duration: 0, isCore: true, tools: ["web-search", "web-scrape"], maxToolSteps: 10, toolContext: "You are a thorough personal research assistant. Search from multiple angles to find the most relevant, current information. Look for official sources, comparison data, and expert recommendations. Gather at least 5-8 unique sources. Track all URLs for citations." },
+    { description: "Cross-referencing sources", duration: 1500 },
+    { description: "Synthesizing actionable report", duration: 0, isCore2: true, core2Prompt: "You are an expert at turning research into actionable advice for regular people. Take the research below and create a clear, structured report with:\n1. Key Findings Summary\n2. Detailed Analysis with comparison tables where relevant\n3. Specific Action Steps (numbered, concrete)\n4. Important Warnings or Disclaimers\n5. Sources with links\n\nUse plain language — no jargon. Format with clean markdown and tables.\n\nResearch data:\n\n" },
+    { description: "Adding final details", duration: 800 },
+  ],
+
+  // Document Analyzer — analyze user-provided text, produce review
+  life_document: [
+    { description: "Reading and parsing the document", duration: 1200 },
+    { description: "Analyzing content and flagging issues", duration: 0, isCore: true, tools: ["web-search", "calculator"], maxToolSteps: 8, toolContext: "You are a meticulous document analyst. Read the provided text carefully. Search for relevant regulations, standard terms, and benchmarks to compare against. Use the calculator for any financial calculations. Identify every potential issue, unusual term, or red flag." },
+    { description: "Cross-referencing with standards", duration: 1500 },
+    { description: "Building detailed review report", duration: 0, isCore2: true, core2Prompt: "You are an expert document reviewer. Take the analysis below and create a comprehensive review with:\n1. Document Summary (key terms at a glance)\n2. Clause-by-Clause Review Table (clause | summary | risk level: green/yellow/red)\n3. Red Flags and Concerns (detailed explanation of each)\n4. Comparison to Standard Terms\n5. Negotiation Points (what to push back on and how)\n6. Missing Protections (what should be there but isn't)\n\nUse tables extensively. Be specific, not vague.\n\nAnalysis data:\n\n" },
+    { description: "Finalizing review", duration: 800 },
+  ],
+
+  // Draft Writer — produce ready-to-send communications
+  life_draft: [
+    { description: "Understanding the situation", duration: 1000 },
+    { description: "Researching context and best practices", duration: 0, isCore: true, tools: ["web-search"], maxToolSteps: 6, toolContext: "Research the specific company, service, or context mentioned. Find relevant policies, contact information, competitor offers, and any regulations that support the user's position. Gather specific data points to strengthen the draft." },
+    { description: "Crafting the communication", duration: 1200 },
+    { description: "Writing final drafts", duration: 0, isCore2: true, core2Prompt: "You are an expert communicator who writes persuasive, professional messages. Using the research below, create:\n1. Primary Communication (formal letter or email — ready to send)\n2. Alternative Version (different angle/tone)\n3. Key Talking Points (if a phone call is needed)\n4. Escalation Template (if the first attempt fails)\n5. Expected Timeline and Next Steps\n\nMake every draft ready to copy-paste and send. Include specific details from the research.\n\nResearch and context:\n\n" },
+    { description: "Final polish", duration: 600 },
+  ],
+
+  // Comparison Research — compare multiple options with tables
+  life_compare: [
+    { description: "Identifying options to compare", duration: 1000 },
+    { description: "Researching each option in detail", duration: 0, isCore: true, tools: ["web-search", "web-scrape", "calculator"], maxToolSteps: 12, toolContext: "You are a thorough comparison researcher. For each option:\n1. Search for current pricing, features, and terms\n2. Search for user reviews and ratings\n3. Search for expert recommendations\n4. If a product/pricing page is available, scrape it for details\n5. Use the calculator for cost comparisons and savings estimates\nGet specific numbers — not ranges. Compare at least 3-5 options." },
+    { description: "Building comparison matrices", duration: 1500 },
+    { description: "Creating recommendation report", duration: 0, isCore2: true, core2Prompt: "You are a comparison expert who helps people make smart decisions. Using the research below, create:\n1. Quick Recommendation (best overall pick + why, in 2-3 sentences)\n2. Detailed Comparison Table (features, prices, pros/cons for each option)\n3. Best For Each Scenario (best budget, best premium, best value, etc.)\n4. Cost Analysis (monthly, yearly, total cost of ownership if relevant)\n5. How to Switch/Get Started (specific steps)\n6. Potential Savings Summary\n\nUse tables extensively. Bold the winning option in each category.\n\nResearch data:\n\n" },
+    { description: "Finalizing recommendations", duration: 800 },
+  ],
+
   market_sizing: [
     { description: "Defining market boundaries", duration: 1000 },
     { description: "Researching market data and reports", duration: 0, isCore: true, tools: ["web-search", "calculator"], maxToolSteps: 12, toolContext: "You are a market analyst. Research thoroughly:\n1. Search for industry reports and market size estimates\n2. Search for census data, government statistics, and public filings\n3. Search for competitor revenue data and market share\n4. Search for growth rates and CAGR projections\n5. Use the calculator for bottom-up calculations\n6. Search for analogous markets for validation\nGet hard numbers — not just ranges." },
@@ -379,6 +417,41 @@ const SLUG_TO_PIPELINE: Record<string, string> = {
   "pricing-strategist": "strategist",
   "proposal-writer": "catalyst",
   "devops-agent": "architect",
+  // ── Life Utility Agents ──────────────────────────────────
+  // research_and_draft pattern
+  "job-hunter": "life_research",
+  "interview-coach": "life_research",
+  "salary-negotiator": "life_research",
+  "scholarship-hunter": "life_research",
+  "college-advisor": "life_research",
+  "side-hustle-matcher": "life_research",
+  "benefits-finder": "life_research",
+  "immigration-helper": "life_research",
+  "tax-deduction-finder": "life_research",
+  "credit-score-coach": "life_research",
+  "symptom-researcher": "life_research",
+  "apartment-scout": "life_research",
+  "moving-coordinator": "life_research",
+  "small-claims-advisor": "life_research",
+  // document_analyzer pattern
+  "resume-optimizer": "life_document",
+  "lease-reviewer": "life_document",
+  "medical-bill-auditor": "life_document",
+  "contract-reviewer": "life_document",
+  // draft_writer pattern
+  "auto-applier": "life_draft",
+  "subscription-killer": "life_draft",
+  "bill-negotiator": "life_draft",
+  "dispute-fighter": "life_draft",
+  "return-assistant": "life_draft",
+  "roommate-matcher": "life_draft",
+  "freelance-bid-writer": "life_draft",
+  // comparison_research pattern
+  "deal-spotter": "life_compare",
+  "utility-optimizer": "life_compare",
+  "insurance-comparer": "life_compare",
+  "prescription-saver": "life_compare",
+  "car-buy-negotiator": "life_compare",
 };
 
 export function getPipeline(agentSlug: string): PipelineStep[] {
